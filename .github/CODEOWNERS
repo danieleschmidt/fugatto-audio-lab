@@ -1,0 +1,33 @@
+# Global code ownership
+* @daniel-schmidt
+
+# Core library code
+/fugatto_lab/ @daniel-schmidt @core-team
+
+# Configuration files
+*.toml @daniel-schmidt
+*.yaml @daniel-schmidt @devops-team
+*.yml @daniel-schmidt @devops-team
+
+# Security-related files
+/docs/SECURITY* @daniel-schmidt @security-team
+/.github/dependabot.yml @daniel-schmidt @security-team
+/.pre-commit-config.yaml @daniel-schmidt @security-team
+
+# Docker and deployment
+/Dockerfile @daniel-schmidt @devops-team
+/docker-compose.yml @daniel-schmidt @devops-team
+/scripts/ @daniel-schmidt @devops-team
+
+# Documentation
+/docs/ @daniel-schmidt @docs-team
+/README.md @daniel-schmidt @docs-team
+
+# Tests
+/tests/ @daniel-schmidt @qa-team
+
+# GitHub workflows (when created)
+/.github/workflows/ @daniel-schmidt @devops-team
+
+# Release and packaging
+/pyproject.toml @daniel-schmidt @release-team
