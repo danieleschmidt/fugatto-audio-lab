@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  fugatto-dev:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspace:cached
+      - fugatto-models:/workspace/models
+      - fugatto-data:/workspace/data
+    environment:
+      - LOG_LEVEL=DEBUG
+      - MODEL_CACHE_DIR=/workspace/models
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    depends_on:
+      - redis
+    command: sleep infinity
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  fugatto-models:
+  fugatto-data:
+  redis-data:

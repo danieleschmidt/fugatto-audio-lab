@@ -1,0 +1,81 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Fugatto Lab Server",
+      "type": "python",
+      "request": "launch",
+      "module": "fugatto_lab.server",
+      "args": [
+        "--port", "8000",
+        "--debug"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}",
+        "LOG_LEVEL": "DEBUG",
+        "MODEL_CACHE_DIR": "${workspaceFolder}/models"
+      },
+      "justMyCode": false
+    },
+    {
+      "name": "Python: Test Current File",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "${file}",
+        "-v"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    },
+    {
+      "name": "Python: Test with Coverage",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "--cov=fugatto_lab",
+        "--cov-report=html",
+        "tests/"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    },
+    {
+      "name": "Python: Debug Model Loading",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/debug_model.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}",
+        "LOG_LEVEL": "DEBUG"
+      }
+    },
+    {
+      "name": "Docker: Build and Debug",
+      "type": "docker",
+      "request": "launch",
+      "preLaunchTask": "docker-build",
+      "python": {
+        "pathMappings": [
+          {
+            "localRoot": "${workspaceFolder}",
+            "remoteRoot": "/app"
+          }
+        ],
+        "projectType": "flask"
+      }
+    }
+  ]
+}
