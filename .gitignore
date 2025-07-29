@@ -205,3 +205,47 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Audio Lab specific
+# Model weights and cached data
+models/
+cache/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# Generated audio files
+outputs/
+generated/
+temp_audio/
+*.wav
+*.mp3
+*.flac
+*.ogg
+
+# Dataset files
+data/private/
+datasets/private/
+user_data/
+
+# Security and secrets
+secrets/
+*.key
+*.pem
+*.p12
+config/local.yaml
+api_keys.json
+.fugatto_config
+
+# Logs
+logs/
+*.log
+
+# Monitoring and metrics
+metrics/
+grafana_data/
+prometheus_data/
+
+# Testing
+test_outputs/
