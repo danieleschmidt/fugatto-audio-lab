@@ -1,0 +1,122 @@
+# Docker Compose configuration for Fugatto Audio Lab
+# Provides development and production deployment options
+
+version: '3.8'
+
+services:
+  # Main Fugatto Audio Lab service
+  fugatto-lab:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fugatto-audio-lab
+    ports:
+      - "7860:7860"  # Gradio interface
+      - "8501:8501"  # Streamlit dashboard
+    volumes:
+      - ./outputs:/home/fugatto/outputs
+      - ./models:/home/fugatto/models
+      - ./cache:/home/fugatto/cache
+      - ./configs:/home/fugatto/configs
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - FUGATTO_MODEL_CACHE=/home/fugatto/cache
+      - FUGATTO_OUTPUT_DIR=/home/fugatto/outputs
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: fugatto-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    profiles:
+      - production
+
+  # PostgreSQL for metadata (optional)
+  postgres:
+    image: postgres:15-alpine
+    container_name: fugatto-postgres
+    environment:
+      - POSTGRES_DB=fugatto_lab
+      - POSTGRES_USER=fugatto
+      - POSTGRES_PASSWORD=fugatto_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    profiles:
+      - production
+
+  # Monitoring with Prometheus (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: fugatto-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Grafana for visualization (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: fugatto-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./configs/grafana:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+volumes:
+  redis_data:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
+# Usage Examples:
+#
+# Development (basic service only):
+# docker-compose up fugatto-lab
+#
+# Production with database:
+# docker-compose --profile production up -d
+#
+# Full monitoring stack:
+# docker-compose --profile production --profile monitoring up -d
+#
+# Build and run:
+# docker-compose up --build
+#
+# View logs:
+# docker-compose logs -f fugatto-lab
