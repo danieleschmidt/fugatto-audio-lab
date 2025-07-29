@@ -1,7 +1,7 @@
 # Fugatto Audio Lab Docker Image
 # Optimized for NVIDIA GPU acceleration and production deployment
 
-FROM nvidia/cuda:12.2-devel-ubuntu22.04
+FROM nvidia/cuda:12.9.1-devel-ubuntu22.04
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
