@@ -1,0 +1,163 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fugatto-audio-lab"
+version = "0.1.0"
+description = "Plug-and-play generative audio playground with live prompt → sound preview for NVIDIA's Fugatto transformer"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Daniel Schmidt", email = "daniel@example.com"},
+]
+maintainers = [
+    {name = "Daniel Schmidt", email = "daniel@example.com"},
+]
+keywords = ["audio", "ai", "machine-learning", "generative", "fugatto", "transformer"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.3.0",
+    "torchaudio>=2.3.0",
+    "transformers>=4.40.0",
+    "accelerate>=0.30.0",
+    "einops>=0.7.0",
+    "librosa>=0.10.0",
+    "soundfile>=0.12.0",
+    "encodec>=0.1.1",
+    "audiocraft>=1.2.0",
+    "gradio>=4.37.0",
+    "streamlit>=1.35.0",
+    "plotly>=5.20.0",
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "matplotlib>=3.7.0",
+    "pydantic>=2.0.0",
+    "omegaconf>=2.3.0",
+    "tqdm>=4.65.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-xdist>=3.3.0",
+    "black>=23.7.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.5.0",
+    "pre-commit>=3.3.0",
+    "ruff>=0.0.280",
+]
+eval = [
+    "pesq>=0.0.4",
+    "pystoi>=0.3.3",
+    "torchmetrics[audio]>=1.0.0",
+    "crowdkit>=1.2.0",
+]
+all = [
+    "fugatto-audio-lab[dev,eval]",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/fugatto-audio-lab"
+Documentation = "https://fugatto-lab.readthedocs.io"
+Repository = "https://github.com/yourusername/fugatto-audio-lab.git"
+Issues = "https://github.com/yourusername/fugatto-audio-lab/issues"
+
+[project.scripts]
+fugatto-lab = "fugatto_lab.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["fugatto_lab*"]
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+extend-exclude = '''
+/(
+  | docs
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["fugatto_lab"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+exclude = [
+    "docs/",
+    "build/",
+    "dist/",
+]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["fugatto_lab"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "setup.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
