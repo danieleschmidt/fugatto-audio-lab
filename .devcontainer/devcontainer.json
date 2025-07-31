@@ -1,7 +1,7 @@
 {
   "name": "Fugatto Audio Lab Development",
   "dockerComposeFile": "docker-compose.yml",
-  "service": "fugatto-dev",
+  "service": "dev",
   "workspaceFolder": "/workspace",
   "shutdownAction": "stopCompose",
   
