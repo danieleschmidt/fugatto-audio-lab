@@ -161,3 +161,9 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
+
+[tool.bandit]
+exclude_dirs = ["tests", "docs", "build", "dist"]
+skips = ["B101", "B601"]  # Skip assert_used and shell_injection_process_substitution
+[tool.bandit.assert_used]
+skips = ["*test*.py", "**/test_*.py"]
