@@ -238,6 +238,43 @@ config/local.yaml
 api_keys.json
 .fugatto_config
 
+# Additional AI/ML security patterns
+# Hugging Face tokens and credentials
+.huggingface/
+hf_*_token
+*.hf_token
+
+# Cloud provider credentials
+.aws/
+.gcp/
+.azure/
+service-account*.json
+credentials.json
+
+# NVIDIA/CUDA specific
+.nv/
+nvidia-*.log
+cuda-*.log
+
+# MLOps and experiment tracking
+.mlflow/
+mlruns/
+wandb/
+.neptune/
+runs/
+tensorboard_logs/
+experiments/
+
+# Model serving
+.triton/
+.torchserve/
+model_store/
+
+# Container runtime
+.container_cache/
+docker-compose.override.yml
+.docker/
+
 # Logs
 logs/
 *.log
@@ -249,3 +286,56 @@ prometheus_data/
 
 # Testing
 test_outputs/
+
+# Performance and profiling
+benchmark_results/
+profile_results/
+*.prof
+*.profile
+cprofile_*.txt
+
+# Security scanning reports
+bandit-report.json
+safety-report.json
+trivy-results.sarif
+codacy-results.json
+
+# Build and CI artifacts
+.github_artifacts/
+artifacts/
+reports/
+allure-results/
+
+# IDE and editor specific
+# VS Code
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/extensions.json
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Temporary system files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*.orig
+*.rej
+*~
+
+# OS generated files
+.directory
+.fuse_hidden*
+.nfs*

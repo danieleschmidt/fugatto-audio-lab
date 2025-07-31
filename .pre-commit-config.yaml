@@ -53,6 +53,33 @@ repos:
       - id: prettier
         types_or: [yaml, markdown, json]
 
+  # Advanced security and AI-specific hooks
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: .*\.lock$
+  
+  - repo: https://github.com/gitguardian/ggshield
+    rev: v1.25.0
+    hooks:
+      - id: ggshield
+        language: python
+        stages: [commit]
+  
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+    rev: v1.3.2
+    hooks:
+      - id: python-safety-dependencies-check
+  
+  - repo: https://github.com/pycqa/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+        args: [--convention=google]
+        additional_dependencies: [tomli]
+  
   - repo: local
     hooks:
       - id: pytest-check
@@ -61,4 +88,19 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        args: [--tb=short]
+        args: [--tb=short, -x]
+      
+      - id: model-size-check
+        name: check-model-file-sizes
+        entry: python
+        language: system
+        args: [-c, "import os; import sys; max_size=100*1024*1024; files=[f for f in sys.argv[1:] if f.endswith(('.pt', '.pth', '.ckpt', '.safetensors'))]; oversized=[f for f in files if os.path.exists(f) and os.path.getsize(f) > max_size]; sys.exit(1) if oversized else sys.exit(0)"]
+        files: \.(pt|pth|ckpt|safetensors)$
+      
+      - id: audio-quality-check
+        name: check-audio-sample-quality
+        entry: python
+        language: system
+        args: [-c, "import sys; import soundfile as sf; [sf.info(f) for f in sys.argv[1:] if f.endswith(('.wav', '.flac', '.mp3'))]"]
+        files: \.(wav|flac|mp3)$
+        pass_filenames: true
