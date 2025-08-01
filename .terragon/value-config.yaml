@@ -1,0 +1,159 @@
+# Terragon Autonomous SDLC Value Discovery Configuration
+# Repository: fugatto-audio-lab
+# Maturity Level: ADVANCED (85% → 92% target)
+
+repository:
+  name: "fugatto-audio-lab"
+  type: "ai-ml-audio"
+  maturity_level: "advanced"
+  current_score: 85
+  target_score: 92
+
+scoring:
+  weights:
+    # Advanced repository weighting strategy
+    advanced:
+      wsjf: 0.5           # Weighted Shortest Job First
+      ice: 0.1            # Impact × Confidence × Ease
+      technicalDebt: 0.3  # Technical debt reduction
+      security: 0.1       # Security improvements
+      
+  thresholds:
+    minScore: 15          # Minimum composite score for execution
+    maxRisk: 0.8          # Maximum acceptable risk level
+    securityBoost: 2.0    # Security vulnerability multiplier
+    complianceBoost: 1.8  # Compliance issue multiplier
+    
+  categories:
+    security:
+      priority_multiplier: 2.0
+      auto_execute_threshold: 50
+    performance:
+      priority_multiplier: 1.5
+      regression_threshold: 0.05
+    technical_debt:
+      priority_multiplier: 1.3
+      compound_interest_rate: 1.1
+    documentation:
+      priority_multiplier: 0.8
+      freshness_threshold_days: 30
+
+discovery:
+  sources:
+    - gitHistory          # TODO/FIXME/HACK markers
+    - staticAnalysis      # Code quality metrics
+    - issueTrackers       # GitHub issues and PRs
+    - vulnerabilityDatabases  # CVE and security advisories
+    - performanceMonitoring   # Benchmarks and profiling
+    - dependencyAudits    # Outdated and vulnerable packages
+    - testCoverage        # Coverage gaps and test debt
+    - documentationGaps   # Outdated or missing docs
+    
+  tools:
+    staticAnalysis:
+      - name: "ruff"
+        config: "pyproject.toml"
+        weight: 0.3
+      - name: "mypy"
+        config: "pyproject.toml"
+        weight: 0.2
+      - name: "bandit"
+        config: ".bandit"
+        weight: 0.3
+      - name: "black"
+        config: "pyproject.toml"
+        weight: 0.1
+      - name: "isort"
+        config: "pyproject.toml"
+        weight: 0.1
+        
+    security:
+      - name: "safety"
+        command: "safety check"
+        weight: 0.4
+      - name: "pip-audit"
+        command: "pip-audit"
+        weight: 0.3
+      - name: "trivy"
+        command: "trivy fs ."
+        weight: 0.3
+        
+    performance:
+      - name: "pytest-benchmark"
+        config: "pytest.ini"
+        baseline_file: "benchmarks/baselines.json"
+        regression_threshold: 0.1
+        
+    testing:
+      - name: "pytest"
+        config: "pytest.ini"
+        coverage_threshold: 80
+        mutation_threshold: 75
+
+execution:
+  constraints:
+    maxConcurrentTasks: 1     # Only one autonomous task at a time
+    maxExecutionTimeHours: 4  # Maximum time per task
+    requiresApproval: false   # Auto-execute for advanced repos
+    
+  testRequirements:
+    minCoverage: 80           # Minimum test coverage
+    performanceRegression: 5  # Max % performance regression
+    lintingPasses: true       # All linting must pass
+    securityScanPasses: true  # Security scans must pass
+    
+  rollbackTriggers:
+    - testFailure             # Any test failures
+    - buildFailure            # Build/compilation failures
+    - securityViolation       # New security issues
+    - performanceRegression   # Significant performance loss
+    - coverageDecrease        # Test coverage reduction
+
+scheduling:
+  continuous:
+    prMerge: true            # Trigger on PR merge
+    hourly: true             # Hourly security scans
+    daily: true              # Daily comprehensive analysis
+    weekly: true             # Weekly deep reviews
+    monthly: true            # Monthly strategic recalibration
+    
+  windows:
+    businessHours: "09:00-17:00 UTC"
+    deploymentFreeze: []     # No deployment freeze periods
+    maintenanceWindows: []   # No scheduled maintenance
+    
+metrics:
+  tracking:
+    - executionHistory       # All completed tasks
+    - backlogMetrics        # Backlog size and trends
+    - maturityProgression   # SDLC maturity improvements
+    - valueDelivered        # Business value metrics
+    - technicalDebtTrends   # Debt accumulation/reduction
+    - securityPosture       # Security improvements
+    - performanceBaselines  # Performance trend tracking
+    
+  retention:
+    detailedHistory: 90     # Days of detailed history
+    summaryHistory: 365     # Days of summary metrics
+    
+  reporting:
+    dailySummary: true      # Daily progress summary
+    weeklyReport: true      # Weekly value delivery report
+    monthlyReview: true     # Monthly strategic review
+    
+integration:
+  github:
+    enabled: true
+    autoLabels: true        # Auto-apply labels to PRs
+    autoAssignReviewers: true # Use CODEOWNERS for reviews
+    branchProtection: true  # Respect branch protection rules
+    
+  notifications:
+    slack: false            # Slack integration disabled
+    email: false            # Email notifications disabled
+    github: true            # GitHub notifications only
+    
+  external:
+    codecov: true           # CodeCov integration
+    dependabot: true        # Dependabot alerts
+    codeql: true            # CodeQL security scanning
