@@ -7,9 +7,12 @@ performance metrics, health checks, and observability features.
 import time
 import logging
 import psutil
+import sys
+import subprocess
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, asdict
 from datetime import datetime
+from pathlib import Path
 
 
 @dataclass
@@ -201,3 +204,220 @@ def monitor_generation(func):
             raise
     
     return wrapper
+
+
+class HealthChecker:
+    """System health checker for Fugatto Audio Lab components."""
+    
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+    
+    def check_python_version(self) -> Dict[str, Any]:
+        """Check Python version compatibility."""
+        version = sys.version_info
+        major, minor = version.major, version.minor
+        
+        # Require Python 3.10+
+        if major >= 3 and minor >= 10:
+            return {
+                'healthy': True,
+                'message': f'Python {major}.{minor}.{version.micro} ✓',
+                'version': f'{major}.{minor}.{version.micro}'
+            }
+        else:
+            return {
+                'healthy': False,
+                'message': f'Python {major}.{minor}.{version.micro} (requires 3.10+)',
+                'version': f'{major}.{minor}.{version.micro}'
+            }
+    
+    def check_torch_installation(self) -> Dict[str, Any]:
+        """Check PyTorch installation and CUDA availability."""
+        try:
+            import torch
+            torch_version = torch.__version__
+            cuda_available = torch.cuda.is_available()
+            
+            if cuda_available:
+                gpu_count = torch.cuda.device_count()
+                gpu_name = torch.cuda.get_device_name(0) if gpu_count > 0 else "Unknown"
+                message = f'PyTorch {torch_version} with CUDA ({gpu_count} GPU(s): {gpu_name}) ✓'
+            else:
+                message = f'PyTorch {torch_version} (CPU only) ⚠️'
+            
+            return {
+                'healthy': True,
+                'message': message,
+                'version': torch_version,
+                'cuda_available': cuda_available,
+                'gpu_count': gpu_count if cuda_available else 0
+            }
+        except ImportError:
+            return {
+                'healthy': False,
+                'message': 'PyTorch not installed ❌',
+                'version': None,
+                'cuda_available': False,
+                'gpu_count': 0
+            }
+    
+    def check_audio_libraries(self) -> Dict[str, Any]:
+        """Check audio processing libraries."""
+        libraries = {}
+        overall_healthy = True
+        
+        # Check core audio libraries
+        for lib_name, import_name in [
+            ('librosa', 'librosa'),
+            ('soundfile', 'soundfile'),
+            ('numpy', 'numpy'),
+            ('scipy', 'scipy')
+        ]:
+            try:
+                lib = __import__(import_name)
+                version = getattr(lib, '__version__', 'unknown')
+                libraries[lib_name] = {
+                    'installed': True,
+                    'version': version,
+                    'status': '✓'
+                }
+            except ImportError:
+                libraries[lib_name] = {
+                    'installed': False,
+                    'version': None,
+                    'status': '❌'
+                }
+                if lib_name in ['numpy']:  # Critical libraries
+                    overall_healthy = False
+        
+        # Check optional libraries
+        for lib_name, import_name in [
+            ('transformers', 'transformers'),
+            ('gradio', 'gradio'),
+            ('matplotlib', 'matplotlib')
+        ]:
+            try:
+                lib = __import__(import_name)
+                version = getattr(lib, '__version__', 'unknown')
+                libraries[lib_name] = {
+                    'installed': True,
+                    'version': version,
+                    'status': '✓'
+                }
+            except ImportError:
+                libraries[lib_name] = {
+                    'installed': False,
+                    'version': None,
+                    'status': '⚠️ (optional)'
+                }
+        
+        installed_count = sum(1 for lib in libraries.values() if lib['installed'])
+        total_count = len(libraries)
+        
+        return {
+            'healthy': overall_healthy,
+            'message': f'Audio libraries: {installed_count}/{total_count} available',
+            'libraries': libraries
+        }
+    
+    def check_disk_space(self) -> Dict[str, Any]:
+        """Check available disk space."""
+        try:
+            disk_usage = psutil.disk_usage('/')
+            free_gb = disk_usage.free / (1024**3)
+            total_gb = disk_usage.total / (1024**3)
+            used_percent = (disk_usage.used / disk_usage.total) * 100
+            
+            if used_percent > 90:
+                healthy = False
+                message = f'Disk space critically low: {free_gb:.1f}GB free ({used_percent:.1f}% used) ❌'
+            elif used_percent > 80:
+                healthy = True
+                message = f'Disk space low: {free_gb:.1f}GB free ({used_percent:.1f}% used) ⚠️'
+            else:
+                healthy = True
+                message = f'Disk space: {free_gb:.1f}GB free ({100-used_percent:.1f}% available) ✓'
+            
+            return {
+                'healthy': healthy,
+                'message': message,
+                'free_gb': free_gb,
+                'total_gb': total_gb,
+                'used_percent': used_percent
+            }
+        except Exception as e:
+            return {
+                'healthy': False,
+                'message': f'Could not check disk space: {e}',
+                'free_gb': None,
+                'total_gb': None,
+                'used_percent': None
+            }
+    
+    def check_memory(self) -> Dict[str, Any]:
+        """Check system memory."""
+        try:
+            memory = psutil.virtual_memory()
+            available_gb = memory.available / (1024**3)
+            total_gb = memory.total / (1024**3)
+            used_percent = memory.percent
+            
+            if used_percent > 90:
+                healthy = False
+                message = f'Memory critically low: {available_gb:.1f}GB available ({used_percent:.1f}% used) ❌'
+            elif used_percent > 80:
+                healthy = True
+                message = f'Memory usage high: {available_gb:.1f}GB available ({used_percent:.1f}% used) ⚠️'
+            else:
+                healthy = True
+                message = f'Memory: {available_gb:.1f}GB available ({used_percent:.1f}% used) ✓'
+            
+            return {
+                'healthy': healthy,
+                'message': message,
+                'available_gb': available_gb,
+                'total_gb': total_gb,
+                'used_percent': used_percent
+            }
+        except Exception as e:
+            return {
+                'healthy': False,
+                'message': f'Could not check memory: {e}',
+                'available_gb': None,
+                'total_gb': None,
+                'used_percent': None
+            }
+    
+    def check_model_availability(self) -> Dict[str, Any]:
+        """Check if models can be loaded."""
+        try:
+            from .core import FugattoModel
+            
+            # Try to initialize a model (this doesn't actually load weights)
+            model = FugattoModel("nvidia/fugatto-base")
+            
+            return {
+                'healthy': True,
+                'message': 'Model initialization successful ✓',
+                'model_class_available': True
+            }
+        except Exception as e:
+            return {
+                'healthy': False,
+                'message': f'Model initialization failed: {e} ❌',
+                'model_class_available': False
+            }
+    
+    def check_all(self) -> Dict[str, Dict[str, Any]]:
+        """Run all health checks."""
+        checks = {
+            'Python Version': self.check_python_version(),
+            'PyTorch': self.check_torch_installation(),
+            'Audio Libraries': self.check_audio_libraries(),
+            'Disk Space': self.check_disk_space(),
+            'Memory': self.check_memory(),
+            'Model Loading': self.check_model_availability()
+        }
+        
+        self.logger.info("Health check completed")
+        return checks
