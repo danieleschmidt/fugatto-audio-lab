@@ -419,6 +419,20 @@ class AudioProcessor:
         self.target_loudness = target_loudness
         self.supported_formats = ['.wav', '.mp3', '.flac', '.ogg', '.m4a']
         
+        # Advanced processing parameters
+        self.hop_length = 512
+        self.n_fft = 2048
+        self.n_mels = 128
+        
+        # Audio enhancement settings
+        self.noise_gate_threshold = -60.0  # dB
+        self.compressor_ratio = 4.0
+        self.eq_bands = {
+            'low': {'freq': 80, 'gain': 0, 'q': 0.7},
+            'mid': {'freq': 1000, 'gain': 0, 'q': 0.7},
+            'high': {'freq': 8000, 'gain': 0, 'q': 0.7}
+        }
+        
         logger.info(f"AudioProcessor initialized: {sample_rate}Hz, {target_loudness} LUFS")
     
     def load_audio(self, filepath: Union[str, Path], 
@@ -676,6 +690,251 @@ class AudioProcessor:
                 logger.warning("Could not display plot")
         
         plt.close()
+    
+    def extract_features(self, audio: np.ndarray) -> Dict[str, Any]:
+        """Extract comprehensive audio features for analysis.
+        
+        Args:
+            audio: Audio signal
+            
+        Returns:
+            Dictionary with extracted features
+        """
+        features = {}
+        
+        # Basic statistics
+        features.update(self.get_audio_stats(audio))
+        
+        # Spectral features
+        try:
+            if librosa is not None:
+                # Spectral centroid
+                spectral_centroids = librosa.feature.spectral_centroid(y=audio, sr=self.sample_rate)[0]
+                features['spectral_centroid_mean'] = float(np.mean(spectral_centroids))
+                features['spectral_centroid_std'] = float(np.std(spectral_centroids))
+                
+                # Spectral rolloff
+                rolloff = librosa.feature.spectral_rolloff(y=audio, sr=self.sample_rate)[0]
+                features['spectral_rolloff_mean'] = float(np.mean(rolloff))
+                
+                # Zero crossing rate
+                zcr = librosa.feature.zero_crossing_rate(audio)[0]
+                features['zcr_mean'] = float(np.mean(zcr))
+                
+                # MFCCs
+                mfccs = librosa.feature.mfcc(y=audio, sr=self.sample_rate, n_mfcc=13)
+                for i in range(min(5, mfccs.shape[0])):
+                    features[f'mfcc_{i+1}_mean'] = float(np.mean(mfccs[i]))
+                    features[f'mfcc_{i+1}_std'] = float(np.std(mfccs[i]))
+                    
+                # Chroma features
+                chroma = librosa.feature.chroma_stft(y=audio, sr=self.sample_rate)
+                features['chroma_mean'] = float(np.mean(chroma))
+                
+                # Tempo estimation
+                tempo, beats = librosa.beat.beat_track(y=audio, sr=self.sample_rate)
+                features['tempo'] = float(tempo)
+                features['num_beats'] = len(beats)
+                
+            else:
+                logger.warning("librosa not available, using basic spectral analysis")
+                # Basic FFT-based features
+                fft = np.fft.fft(audio)
+                magnitude = np.abs(fft[:len(fft)//2])
+                freqs = np.fft.fftfreq(len(fft), 1/self.sample_rate)[:len(fft)//2]
+                
+                # Spectral centroid approximation
+                features['spectral_centroid_mean'] = float(np.sum(freqs * magnitude) / (np.sum(magnitude) + 1e-10))
+                
+                # Spectral energy in different bands
+                low_band = magnitude[(freqs >= 20) & (freqs <= 200)]
+                mid_band = magnitude[(freqs > 200) & (freqs <= 2000)]
+                high_band = magnitude[(freqs > 2000) & (freqs <= 8000)]
+                
+                total_energy = np.sum(magnitude ** 2)
+                features['low_band_energy'] = float(np.sum(low_band ** 2) / (total_energy + 1e-10))
+                features['mid_band_energy'] = float(np.sum(mid_band ** 2) / (total_energy + 1e-10))
+                features['high_band_energy'] = float(np.sum(high_band ** 2) / (total_energy + 1e-10))
+                
+        except Exception as e:
+            logger.warning(f"Feature extraction error: {e}")
+            
+        return features
+    
+    def analyze_audio_quality(self, audio: np.ndarray) -> Dict[str, Any]:
+        """Analyze audio quality metrics.
+        
+        Args:
+            audio: Audio signal
+            
+        Returns:
+            Dictionary with quality metrics
+        """
+        quality = {}
+        
+        # SNR estimation
+        # Estimate noise floor from quietest 10% of samples
+        sorted_abs = np.sort(np.abs(audio))
+        noise_floor = np.mean(sorted_abs[:int(0.1 * len(sorted_abs))])
+        signal_power = np.mean(audio ** 2)
+        noise_power = noise_floor ** 2
+        snr_db = 10 * np.log10((signal_power - noise_power) / (noise_power + 1e-10))
+        quality['snr_db'] = float(snr_db)
+        
+        # THD estimation (simple harmonic analysis)
+        if librosa is not None:
+            try:
+                # Pitch detection
+                pitches, magnitudes = librosa.piptrack(y=audio, sr=self.sample_rate)
+                fundamental_freq = 0
+                
+                # Find dominant frequency
+                for t in range(pitches.shape[1]):
+                    index = magnitudes[:, t].argmax()
+                    pitch = pitches[index, t]
+                    if pitch > 0:
+                        fundamental_freq = pitch
+                        break
+                
+                if fundamental_freq > 0:
+                    # Simple THD calculation
+                    fft = np.fft.fft(audio)
+                    freqs = np.fft.fftfreq(len(fft), 1/self.sample_rate)
+                    magnitude = np.abs(fft)
+                    
+                    # Find fundamental and harmonics
+                    fundamental_idx = np.argmin(np.abs(freqs - fundamental_freq))
+                    fundamental_power = magnitude[fundamental_idx] ** 2
+                    
+                    harmonic_power = 0
+                    for harmonic in range(2, 6):  # 2nd to 5th harmonic
+                        harmonic_freq = fundamental_freq * harmonic
+                        if harmonic_freq < self.sample_rate / 2:
+                            harmonic_idx = np.argmin(np.abs(freqs - harmonic_freq))
+                            harmonic_power += magnitude[harmonic_idx] ** 2
+                    
+                    thd = harmonic_power / (fundamental_power + 1e-10)
+                    quality['thd'] = float(thd)
+                    quality['fundamental_freq'] = float(fundamental_freq)
+                    
+            except Exception as e:
+                logger.debug(f"THD calculation error: {e}")
+        
+        # Clipping detection
+        clipping_threshold = 0.99
+        clipped_samples = np.sum(np.abs(audio) >= clipping_threshold)
+        quality['clipping_ratio'] = float(clipped_samples / len(audio))
+        
+        # Dynamic range
+        quality['crest_factor_db'] = float(20 * np.log10(np.max(np.abs(audio)) / (np.sqrt(np.mean(audio ** 2)) + 1e-10)))
+        
+        # Silence detection
+        silence_threshold = 0.001
+        silent_samples = np.sum(np.abs(audio) < silence_threshold)
+        quality['silence_ratio'] = float(silent_samples / len(audio))
+        
+        return quality
+    
+    def enhance_audio(self, audio: np.ndarray, enhance_params: Optional[Dict[str, Any]] = None) -> np.ndarray:
+        """Apply audio enhancement processing.
+        
+        Args:
+            audio: Input audio signal
+            enhance_params: Enhancement parameters
+            
+        Returns:
+            Enhanced audio signal
+        """
+        if enhance_params is None:
+            enhance_params = {}
+            
+        enhanced = audio.copy()
+        
+        # Noise gate
+        if enhance_params.get('noise_gate', True):
+            enhanced = self._apply_noise_gate(enhanced, enhance_params.get('gate_threshold', self.noise_gate_threshold))
+        
+        # Dynamic range compression
+        if enhance_params.get('compress', False):
+            enhanced = self._apply_compressor(enhanced, 
+                                            ratio=enhance_params.get('comp_ratio', self.compressor_ratio),
+                                            threshold_db=enhance_params.get('comp_threshold', -20.0))
+        
+        # EQ
+        if enhance_params.get('eq', False):
+            eq_gains = enhance_params.get('eq_gains', {'low': 0, 'mid': 0, 'high': 0})
+            enhanced = self._apply_eq(enhanced, eq_gains)
+        
+        # Normalization
+        if enhance_params.get('normalize', True):
+            enhanced = self.normalize_loudness(enhanced)
+        
+        logger.debug(f"Audio enhancement applied with params: {enhance_params}")
+        return enhanced
+    
+    def _apply_noise_gate(self, audio: np.ndarray, threshold_db: float) -> np.ndarray:
+        """Apply noise gate to reduce background noise."""
+        threshold_linear = 10 ** (threshold_db / 20)
+        
+        # Simple gate: attenuate samples below threshold
+        gate_ratio = 0.1  # Reduce by 90%
+        mask = np.abs(audio) < threshold_linear
+        gated = audio.copy()
+        gated[mask] *= gate_ratio
+        
+        return gated
+    
+    def _apply_compressor(self, audio: np.ndarray, ratio: float, threshold_db: float) -> np.ndarray:
+        """Apply dynamic range compression."""
+        threshold_linear = 10 ** (threshold_db / 20)
+        
+        # Simple compressor
+        compressed = audio.copy()
+        over_threshold = np.abs(audio) > threshold_linear
+        
+        # Apply compression to samples over threshold
+        for i in range(len(audio)):
+            if over_threshold[i]:
+                excess_db = 20 * np.log10(np.abs(audio[i]) / threshold_linear)
+                compressed_excess_db = excess_db / ratio
+                new_amplitude = threshold_linear * (10 ** (compressed_excess_db / 20))
+                compressed[i] = np.sign(audio[i]) * new_amplitude
+        
+        return compressed
+    
+    def _apply_eq(self, audio: np.ndarray, gains: Dict[str, float]) -> np.ndarray:
+        """Apply simple 3-band EQ."""
+        if librosa is None:
+            logger.warning("EQ requires librosa, returning original audio")
+            return audio
+            
+        try:
+            # Convert to frequency domain
+            fft = np.fft.fft(audio)
+            freqs = np.fft.fftfreq(len(fft), 1/self.sample_rate)
+            
+            # Apply gains to frequency bands
+            for band, gain_db in gains.items():
+                if band in self.eq_bands and gain_db != 0:
+                    band_config = self.eq_bands[band]
+                    center_freq = band_config['freq']
+                    q = band_config['q']
+                    
+                    # Simple bell filter
+                    gain_linear = 10 ** (gain_db / 20)
+                    bandwidth = center_freq / q
+                    
+                    # Apply gain to frequency range
+                    freq_mask = (np.abs(freqs) >= center_freq - bandwidth/2) & (np.abs(freqs) <= center_freq + bandwidth/2)
+                    fft[freq_mask] *= gain_linear
+            
+            # Convert back to time domain
+            eq_audio = np.real(np.fft.ifft(fft))
+            return eq_audio.astype(np.float32)
+            
+        except Exception as e:
+            logger.warning(f"EQ processing error: {e}")
+            return audio
     
     def get_audio_stats(self, audio: np.ndarray) -> Dict[str, Any]:
         """Get comprehensive statistics about audio signal.
