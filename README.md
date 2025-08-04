@@ -481,9 +481,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ```bibtex
 @software{fugatto_audio_lab,
   title={Fugatto Audio Lab: Toolkit for Controllable Audio Generation},
-  author={Your Name},
+  author={Daniel Schmidt},
   year={2025},
-  url={https://github.com/yourusername/fugatto-audio-lab}
+  url={https://github.com/danieleschmidt/fugatto-audio-lab}
 }
 
 @article{nvidia_fugatto_2024,
