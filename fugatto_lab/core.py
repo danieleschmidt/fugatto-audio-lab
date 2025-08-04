@@ -7,6 +7,7 @@ import numpy as np
 import warnings
 import logging
 from pathlib import Path
+from .optimization import get_audio_cache, performance_optimized
 
 try:
     import librosa
@@ -45,6 +46,9 @@ class FugattoModel:
         self._tokenizer = None
         self._model = None
         self._loaded = False
+        
+        # Performance optimization
+        self._audio_cache = get_audio_cache()
         
         logger.info(f"Initialized FugattoModel with device: {self.device}")
     
@@ -120,7 +124,17 @@ class FugattoModel:
                 
                 # Audio embedding (if provided)
                 if audio_input is not None:
+                    # Downsample audio input to manageable size
+                    if audio_input.dim() == 1:
+                        audio_input = audio_input.unsqueeze(0)
+                    if audio_input.shape[1] > 1000:  # Limit audio length for processing
+                        step = audio_input.shape[1] // 1000
+                        audio_input = audio_input[:, ::step]
+                    
                     audio_emb = self.audio_embedding(audio_input.unsqueeze(-1)).mean(dim=1)
+                    # Match dimensions by projecting audio embedding to text embedding size
+                    if audio_emb.shape[1] != text_emb.shape[1]:
+                        audio_emb = audio_emb.mean(dim=1, keepdim=True).expand(-1, text_emb.shape[1])
                     combined_emb = text_emb + audio_emb
                 else:
                     combined_emb = text_emb
@@ -130,6 +144,7 @@ class FugattoModel:
         self._tokenizer = MockTokenizer()
         self._model = MockFugattoModel(self.sample_rate).to(self.device)
     
+    @performance_optimized(cache_enabled=True)
     def generate(self, prompt: str, duration_seconds: float = 10.0, 
                 temperature: float = 0.8, top_p: float = 0.95, 
                 guidance_scale: float = 3.0) -> np.ndarray:

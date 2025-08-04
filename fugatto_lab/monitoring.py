@@ -421,3 +421,7 @@ class HealthChecker:
         
         self.logger.info("Health check completed")
         return checks
+
+def get_monitor():
+    """Get monitor instance."""
+    return HealthChecker()

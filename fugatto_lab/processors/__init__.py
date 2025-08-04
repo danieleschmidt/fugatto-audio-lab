@@ -1,13 +1,9 @@
 """Advanced audio processing pipelines and algorithms."""
 
-from .pipeline import ProcessingPipeline
-from .transformers import AudioTransformer
-from .effects import EffectsProcessor
-from .optimization import OptimizationEngine
+from .pipeline import ProcessingPipeline, ProcessingStage, create_default_pipeline
 
 __all__ = [
     "ProcessingPipeline",
-    "AudioTransformer", 
-    "EffectsProcessor",
-    "OptimizationEngine"
+    "ProcessingStage", 
+    "create_default_pipeline"
 ]
