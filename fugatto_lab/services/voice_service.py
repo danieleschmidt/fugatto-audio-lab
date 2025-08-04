@@ -7,6 +7,8 @@ from pathlib import Path
 import time
 
 from ..core import FugattoModel, AudioProcessor
+from ..analyzers import AudioAnalyzer
+from ..processors import ProcessingPipeline
 
 
 logger = logging.getLogger(__name__)
