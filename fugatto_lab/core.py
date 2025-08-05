@@ -1,8 +1,58 @@
 """Core Fugatto model and processing classes."""
 
 from typing import Dict, Any, Optional, Union, List
-import torch
-import torch.nn as nn
+# Conditional imports for testing
+try:
+    import torch
+    import torch.nn as nn
+    HAS_TORCH = True
+except ImportError:
+    torch = None
+    HAS_TORCH = False
+    
+    # Mock torch for testing
+    class MockTorch:
+        @staticmethod
+        def cuda():
+            class MockCuda:
+                @staticmethod
+                def is_available():
+                    return False
+            return MockCuda()
+        
+        @staticmethod
+        def tensor(data):
+            return data
+            
+        class nn:
+            class Module:
+                def __init__(self):
+                    pass
+                def to(self, device):
+                    return self
+                def eval(self):
+                    return self
+            
+            class Linear:
+                def __init__(self, in_features, out_features):
+                    self.in_features = in_features
+                    self.out_features = out_features
+                    
+            class Embedding:
+                def __init__(self, num_embeddings, embedding_dim):
+                    pass
+                    
+            class Sequential:
+                def __init__(self, *layers):
+                    pass
+                    
+            class ReLU:
+                def __init__(self):
+                    pass
+    
+    if not HAS_TORCH:
+        torch = MockTorch()
+        torch.nn = MockTorch.nn
 import numpy as np
 import warnings
 import logging
@@ -38,7 +88,7 @@ class FugattoModel:
             device: Device to run model on ('cuda', 'cpu', or None for auto)
         """
         self.model_name = model_name
-        self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = device or ('cuda' if (HAS_TORCH and torch.cuda.is_available()) else 'cpu')
         self.sample_rate = 48000
         self.max_duration = 30.0  # Maximum generation duration in seconds
         
@@ -75,7 +125,7 @@ class FugattoModel:
         logger.info(f"Loading Fugatto model: {self.model_name}")
         
         try:
-            if AutoTokenizer is not None and AutoModel is not None:
+            if HAS_TORCH and AutoTokenizer is not None and AutoModel is not None:
                 # Try to load from HuggingFace
                 self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
                 self._model = AutoModel.from_pretrained(self.model_name)
@@ -83,7 +133,7 @@ class FugattoModel:
                 self._model.eval()
                 logger.info("Model loaded successfully from HuggingFace")
             else:
-                logger.warning("Transformers not available, using mock model")
+                logger.warning("Torch or transformers not available, using mock model")
                 self._create_mock_model()
         except Exception as e:
             logger.warning(f"Failed to load model from HuggingFace: {e}. Using mock model.")
