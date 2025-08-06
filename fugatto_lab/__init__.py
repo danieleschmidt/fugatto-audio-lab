@@ -1,40 +1,101 @@
-"""Fugatto Audio Lab: Toolkit for Controllable Audio Generation.
+"""Fugatto Audio Lab - Advanced Audio Generation with Quantum Task Planning.
 
-A plug-and-play generative audio playground with live "prompt → sound" preview
-for NVIDIA's Fugatto transformer with text+audio multi-conditioning.
+Enterprise-grade AI audio platform with quantum-inspired task planning,
+intelligent scheduling, and autonomous scaling. Built with advanced 
+Generation 1, 2, 3 enhancements for production deployment.
 """
 
-__version__ = "0.1.0"
-__author__ = "Daniel Schmidt"
+__version__ = "0.3.0"
+__author__ = "Daniel Schmidt & Terragon Labs"
 __email__ = "daniel@example.com"
 
-from fugatto_lab.core import FugattoModel, AudioProcessor
-from fugatto_lab.quantum_planner import QuantumTaskPlanner, QuantumTask, TaskPriority
-from fugatto_lab.intelligent_scheduler import IntelligentScheduler, SchedulingStrategy
-from fugatto_lab.robust_error_handling import RobustErrorHandler, ValidationError, InputValidator
-from fugatto_lab.advanced_monitoring import AdvancedMonitoringSystem, MetricsCollector
-from fugatto_lab.security_framework import SecurityManager, SecurityContext
-from fugatto_lab.performance_optimization import PerformanceOptimizer, HighPerformanceCache
-from fugatto_lab.auto_scaling import AutoScaler, LoadBalancer
+# Core quantum planner components (dependency-free)
+from fugatto_lab.quantum_planner import (
+    QuantumTaskPlanner, 
+    QuantumTask, 
+    TaskPriority,
+    QuantumResourceManager,
+    create_audio_generation_pipeline,
+    create_batch_enhancement_pipeline,
+    run_quantum_audio_pipeline
+)
 
+# Enhanced components (conditional imports)
+try:
+    from fugatto_lab.robust_validation import (
+        RobustValidator,
+        EnhancedErrorHandler,
+        MonitoringEnhancer,
+        create_robust_quantum_planner
+    )
+    HAS_ROBUST_VALIDATION = True
+except ImportError:
+    HAS_ROBUST_VALIDATION = False
+
+try:
+    from fugatto_lab.performance_scaler import (
+        AdvancedPerformanceOptimizer,
+        AutoScaler,
+        BottleneckDetector,
+        enhance_planner_with_scaling
+    )
+    HAS_PERFORMANCE_SCALING = True
+except ImportError:
+    HAS_PERFORMANCE_SCALING = False
+
+# Optional heavy dependencies
+try:
+    from fugatto_lab.core import FugattoModel, AudioProcessor
+    HAS_AUDIO_CORE = True
+except ImportError:
+    HAS_AUDIO_CORE = False
+
+try:
+    from fugatto_lab.intelligent_scheduler import IntelligentScheduler, SchedulingStrategy
+    HAS_INTELLIGENT_SCHEDULER = True
+except ImportError:
+    HAS_INTELLIGENT_SCHEDULER = False
+
+# Core exports (always available)
 __all__ = [
-    "FugattoModel", 
-    "AudioProcessor", 
-    "QuantumTaskPlanner", 
+    "QuantumTaskPlanner",
     "QuantumTask", 
     "TaskPriority",
-    "IntelligentScheduler",
-    "SchedulingStrategy",
-    "RobustErrorHandler",
-    "ValidationError",
-    "InputValidator",
-    "AdvancedMonitoringSystem",
-    "MetricsCollector",
-    "SecurityManager",
-    "SecurityContext",
-    "PerformanceOptimizer",
-    "HighPerformanceCache",
-    "AutoScaler",
-    "LoadBalancer",
+    "QuantumResourceManager",
+    "create_audio_generation_pipeline",
+    "create_batch_enhancement_pipeline",
+    "run_quantum_audio_pipeline",
     "__version__"
 ]
+
+# Conditional exports based on available dependencies
+if HAS_ROBUST_VALIDATION:
+    __all__.extend([
+        "RobustValidator",
+        "EnhancedErrorHandler", 
+        "MonitoringEnhancer",
+        "create_robust_quantum_planner"
+    ])
+
+if HAS_PERFORMANCE_SCALING:
+    __all__.extend([
+        "AdvancedPerformanceOptimizer",
+        "AutoScaler",
+        "BottleneckDetector",
+        "enhance_planner_with_scaling"
+    ])
+
+if HAS_AUDIO_CORE:
+    __all__.extend(["FugattoModel", "AudioProcessor"])
+
+if HAS_INTELLIGENT_SCHEDULER:
+    __all__.extend(["IntelligentScheduler", "SchedulingStrategy"])
+
+# Feature flags for runtime checking
+FEATURES = {
+    "quantum_planning": True,           # Always available
+    "robust_validation": HAS_ROBUST_VALIDATION,
+    "performance_scaling": HAS_PERFORMANCE_SCALING,
+    "audio_core": HAS_AUDIO_CORE,
+    "intelligent_scheduling": HAS_INTELLIGENT_SCHEDULER
+}
