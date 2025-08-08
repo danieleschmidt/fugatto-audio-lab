@@ -22,7 +22,25 @@ except ImportError:
         
         @staticmethod
         def tensor(data):
-            return data
+            class MockTensor:
+                def __init__(self, data):
+                    self.data = data
+                def to(self, device):
+                    return self
+                def __getitem__(self, item):
+                    return self.data[item] if hasattr(self.data, '__getitem__') else self.data
+                def __len__(self):
+                    return len(self.data) if hasattr(self.data, '__len__') else 1
+            return MockTensor(data)
+        
+        @staticmethod
+        def no_grad():
+            class MockNoGrad:
+                def __enter__(self):
+                    return self
+                def __exit__(self, exc_type, exc_val, exc_tb):
+                    pass
+            return MockNoGrad()
             
         class nn:
             class Module:
@@ -53,7 +71,141 @@ except ImportError:
     if not HAS_TORCH:
         torch = MockTorch()
         torch.nn = MockTorch.nn
-import numpy as np
+
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+    # Mock numpy for testing
+    class MockNumpy:
+        @staticmethod
+        def zeros(shape, dtype=None):
+            if isinstance(shape, int):
+                return [0.0] * shape
+            return [[0.0 for _ in range(shape[1])] for _ in range(shape[0])]
+        
+        @staticmethod
+        def ones(shape, dtype=None):
+            if isinstance(shape, int):
+                return [1.0] * shape
+            return [[1.0 for _ in range(shape[1])] for _ in range(shape[0])]
+        
+        @staticmethod
+        def array(data, dtype=None):
+            return list(data) if hasattr(data, '__iter__') else [data]
+        
+        @staticmethod
+        def mean(data):
+            return sum(data) / len(data) if data else 0
+        
+        @staticmethod
+        def std(data):
+            if not data:
+                return 0
+            mean_val = sum(data) / len(data)
+            variance = sum((x - mean_val) ** 2 for x in data) / len(data)
+            return variance ** 0.5
+        
+        @staticmethod
+        def max(data):
+            return max(data) if data else 0
+        
+        @staticmethod
+        def min(data):
+            return min(data) if data else 0
+        
+        @staticmethod
+        def abs(data):
+            if hasattr(data, '__iter__'):
+                return [abs(x) for x in data]
+            return abs(data)
+        
+        @staticmethod
+        def sqrt(data):
+            if hasattr(data, '__iter__'):
+                return [x**0.5 for x in data]
+            return data**0.5
+        
+        @staticmethod
+        def sum(data):
+            return sum(data) if hasattr(data, '__iter__') else data
+        
+        @staticmethod
+        def clip(data, min_val, max_val):
+            if hasattr(data, '__iter__'):
+                return [max(min_val, min(x, max_val)) for x in data]
+            return max(min_val, min(data, max_val))
+        
+        @staticmethod
+        def linspace(start, stop, num):
+            if num <= 1:
+                return [stop]
+            step = (stop - start) / (num - 1)
+            return [start + i * step for i in range(num)]
+        
+        @staticmethod
+        def concatenate(arrays):
+            result = []
+            for arr in arrays:
+                if hasattr(arr, '__iter__'):
+                    result.extend(arr)
+                else:
+                    result.append(arr)
+            return result
+        
+        @staticmethod
+        def interp(x, xp, fp):
+            # Simple linear interpolation
+            result = []
+            for xi in x:
+                for i in range(len(xp) - 1):
+                    if xp[i] <= xi <= xp[i + 1]:
+                        # Linear interpolation
+                        t = (xi - xp[i]) / (xp[i + 1] - xp[i]) if xp[i + 1] != xp[i] else 0
+                        yi = fp[i] + t * (fp[i + 1] - fp[i])
+                        result.append(yi)
+                        break
+                else:
+                    # Out of bounds, use nearest
+                    if xi <= xp[0]:
+                        result.append(fp[0])
+                    else:
+                        result.append(fp[-1])
+            return result
+        
+        @staticmethod
+        def full(shape, fill_value, dtype=None):
+            if isinstance(shape, int):
+                return [fill_value] * shape
+            return [[fill_value for _ in range(shape[1])] for _ in range(shape[0])]
+        
+        @staticmethod
+        def sin(data):
+            import math
+            if hasattr(data, '__iter__'):
+                return [math.sin(x) for x in data]
+            return math.sin(data)
+        
+        @staticmethod
+        def random():
+            import random
+            class MockRandom:
+                @staticmethod
+                def uniform(low, high):
+                    return random.uniform(low, high)
+                @staticmethod
+                def normal(mean, std):
+                    return random.gauss(mean, std) 
+            return MockRandom()
+        
+        # Mock numpy types
+        ndarray = list
+        float32 = float
+        pi = 3.141592653589793
+    
+    if not HAS_NUMPY:
+        np = MockNumpy()
 import warnings
 import logging
 from pathlib import Path
@@ -153,43 +305,51 @@ class FugattoModel:
                     return torch.tensor([tokens])
                 return tokens
         
-        class MockFugattoModel(nn.Module):
+        class MockFugattoModel:
             def __init__(self, sample_rate: int = 48000):
-                super().__init__()
                 self.sample_rate = sample_rate
                 self.embedding_dim = 512
-                self.audio_embedding = nn.Linear(1, self.embedding_dim)
-                self.text_embedding = nn.Embedding(1000, self.embedding_dim)
-                self.generator = nn.Sequential(
-                    nn.Linear(self.embedding_dim, 1024),
-                    nn.ReLU(),
-                    nn.Linear(1024, 2048),
-                    nn.ReLU(),
-                    nn.Linear(2048, 1)  # Output single audio sample
-                )
+                # Simple mock layers without actual neural network functionality
+                self.audio_embedding = "mock_audio_embedding"
+                self.text_embedding = "mock_text_embedding"
+                self.generator = "mock_generator"
                 
-            def forward(self, input_ids: torch.Tensor, audio_input: Optional[torch.Tensor] = None):
-                # Text embedding
-                text_emb = self.text_embedding(input_ids).mean(dim=1)
-                
-                # Audio embedding (if provided)
-                if audio_input is not None:
-                    # Downsample audio input to manageable size
-                    if audio_input.dim() == 1:
-                        audio_input = audio_input.unsqueeze(0)
-                    if audio_input.shape[1] > 1000:  # Limit audio length for processing
-                        step = audio_input.shape[1] // 1000
-                        audio_input = audio_input[:, ::step]
-                    
-                    audio_emb = self.audio_embedding(audio_input.unsqueeze(-1)).mean(dim=1)
-                    # Match dimensions by projecting audio embedding to text embedding size
-                    if audio_emb.shape[1] != text_emb.shape[1]:
-                        audio_emb = audio_emb.mean(dim=1, keepdim=True).expand(-1, text_emb.shape[1])
-                    combined_emb = text_emb + audio_emb
+            def forward(self, input_ids, audio_input=None):
+                # Simple mock forward pass
+                import random
+                # Generate a simple output based on input characteristics
+                if hasattr(input_ids, '__len__'):
+                    input_length = len(input_ids[0]) if isinstance(input_ids[0], list) else 1
                 else:
-                    combined_emb = text_emb
-                    
-                return self.generator(combined_emb)
+                    input_length = 1
+                
+                # Simple mock output - return a mock tensor-like object
+                output_value = 0.5 + 0.3 * (input_length % 3) / 3.0 + 0.2 * random.random()
+                
+                class MockOutput:
+                    def __init__(self, value):
+                        self.value = value
+                    def cpu(self):
+                        return self
+                    def numpy(self):
+                        return MockNumpy()
+                    def flatten(self):
+                        return [self.value]
+                
+                class MockNumpy:
+                    def flatten(self):
+                        return [output_value]
+                
+                return MockOutput(output_value)
+            
+            def to(self, device):
+                return self
+            
+            def eval(self):
+                return self
+            
+            def __call__(self, *args, **kwargs):
+                return self.forward(*args, **kwargs)
         
         self._tokenizer = MockTokenizer()
         self._model = MockFugattoModel(self.sample_rate).to(self.device)
