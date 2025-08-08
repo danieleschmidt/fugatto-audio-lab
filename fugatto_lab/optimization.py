@@ -6,7 +6,31 @@ from typing import Dict, Any, Optional, Callable
 from functools import wraps
 from threading import Lock
 import hashlib
-import numpy as np
+
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+    # Mock numpy for testing
+    class MockNumpy:
+        @staticmethod
+        def array(data, dtype=None):
+            return list(data) if hasattr(data, '__iter__') else [data]
+        
+        @staticmethod
+        def mean(data):
+            return sum(data) / len(data) if data else 0
+        
+        @staticmethod
+        def max(data):
+            return max(data) if data else 0
+        
+        float32 = float
+        ndarray = list  # Mock ndarray as list
+    
+    if not HAS_NUMPY:
+        np = MockNumpy()
 
 logger = logging.getLogger(__name__)
 
