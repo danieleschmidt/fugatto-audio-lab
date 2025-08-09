@@ -1,0 +1,14 @@
+{
+  "task_id": "test_003",
+  "stage": "validation_start",
+  "timestamp": 1754719940.5989344,
+  "data": {
+    "task_type": "denoise",
+    "input_params": {
+      "noise_profile": "environmental"
+    }
+  },
+  "context_params": {
+    "noise_profile": "environmental"
+  }
+}
