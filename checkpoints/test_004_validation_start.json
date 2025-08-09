@@ -1,0 +1,14 @@
+{
+  "task_id": "test_004",
+  "stage": "validation_start",
+  "timestamp": 1754719940.6002362,
+  "data": {
+    "task_type": "analyze",
+    "input_params": {
+      "analysis_depth": "comprehensive"
+    }
+  },
+  "context_params": {
+    "analysis_depth": "comprehensive"
+  }
+}

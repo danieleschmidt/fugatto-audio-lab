@@ -1,0 +1,14 @@
+{
+  "task_id": "test_005",
+  "stage": "validation_start",
+  "timestamp": 1754719940.6012683,
+  "data": {
+    "task_type": "synthesize",
+    "input_params": {
+      "duration": 5.0
+    }
+  },
+  "context_params": {
+    "duration": 5.0
+  }
+}

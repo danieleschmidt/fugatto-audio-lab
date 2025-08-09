@@ -1,0 +1,18 @@
+{
+  "task_id": "test_001",
+  "stage": "validation_start",
+  "timestamp": 1754719933.581288,
+  "data": {
+    "task_type": "enhance",
+    "input_params": {
+      "enhancement_level": 0.8,
+      "preserve_dynamics": true,
+      "sample_rate": 44100
+    }
+  },
+  "context_params": {
+    "enhancement_level": 0.8,
+    "preserve_dynamics": true,
+    "sample_rate": 44100
+  }
+}

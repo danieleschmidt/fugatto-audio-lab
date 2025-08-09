@@ -1,0 +1,11 @@
+{
+  "task_id": "test_005",
+  "stage": "validation_complete",
+  "timestamp": 1754719940.6015465,
+  "data": {
+    "validation_result": "passed"
+  },
+  "context_params": {
+    "duration": 5.0
+  }
+}

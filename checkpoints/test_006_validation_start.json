@@ -1,0 +1,14 @@
+{
+  "task_id": "test_006",
+  "stage": "validation_start",
+  "timestamp": 1754719940.6025903,
+  "data": {
+    "task_type": "optimize",
+    "input_params": {
+      "target": "real_time"
+    }
+  },
+  "context_params": {
+    "target": "real_time"
+  }
+}
