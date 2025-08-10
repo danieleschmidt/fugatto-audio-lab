@@ -1,0 +1,45 @@
+{
+  "overall_score": 94.66784707307815,
+  "production_ready": false,
+  "deployment_recommendation": "REQUIRES improvements before production deployment",
+  "gate_results": {
+    "security": {
+      "passed": false,
+      "score": 69.75,
+      "execution_time": 0.000213623046875,
+      "metrics_count": 5,
+      "recommendations_count": 3
+    },
+    "performance": {
+      "passed": false,
+      "score": 126.02138829231262,
+      "execution_time": 2.1503005027770996,
+      "metrics_count": 5,
+      "recommendations_count": 1
+    },
+    "reliability": {
+      "passed": true,
+      "score": 95.5,
+      "execution_time": 1.5497207641601562e-05,
+      "metrics_count": 3,
+      "recommendations_count": 0
+    },
+    "scalability": {
+      "passed": true,
+      "score": 87.4,
+      "execution_time": 1.1920928955078125e-06,
+      "metrics_count": 3,
+      "recommendations_count": 0
+    }
+  },
+  "total_execution_time": 2.151289701461792,
+  "all_recommendations": [
+    "Implement stricter input validation and sanitization",
+    "Add parameterized queries and input escaping",
+    "Enhance audit logging coverage and retention",
+    "Improve error handling and input validation"
+  ],
+  "gates_passed": 2,
+  "total_gates": 4,
+  "timestamp": 1754849515.6554554
+}
