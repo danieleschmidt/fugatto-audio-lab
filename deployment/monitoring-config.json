@@ -1,0 +1,35 @@
+{
+  "prometheus": {
+    "enabled": true,
+    "port": 9090,
+    "scrape_interval": "30s",
+    "metrics_path": "/metrics"
+  },
+  "grafana": {
+    "enabled": true,
+    "dashboards": [
+      "audio_processing_metrics",
+      "quantum_scheduler_metrics",
+      "learning_engine_metrics",
+      "security_audit_metrics",
+      "fault_tolerance_metrics",
+      "performance_optimization_metrics",
+      "distributed_processing_metrics"
+    ]
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "json",
+    "destinations": [
+      "stdout",
+      "file",
+      "elasticsearch"
+    ],
+    "retention_days": 30
+  },
+  "tracing": {
+    "enabled": true,
+    "jaeger_endpoint": "http://jaeger:14268/api/traces",
+    "sample_rate": 0.1
+  }
+}
