@@ -1,0 +1,44 @@
+{
+  "authentication": {
+    "method": "jwt",
+    "token_expiry": "1h",
+    "refresh_token_expiry": "7d"
+  },
+  "authorization": {
+    "rbac_enabled": true,
+    "default_role": "user",
+    "admin_role": "admin"
+  },
+  "encryption": {
+    "at_rest": {
+      "enabled": true,
+      "algorithm": "AES-256-GCM"
+    },
+    "in_transit": {
+      "enabled": true,
+      "tls_version": "1.3"
+    }
+  },
+  "audit": {
+    "enabled": true,
+    "events": [
+      "authentication",
+      "authorization",
+      "data_access",
+      "configuration_change"
+    ],
+    "retention_days": 90
+  },
+  "network_security": {
+    "firewall_enabled": true,
+    "allowed_ports": [
+      8000,
+      8080,
+      9090
+    ],
+    "rate_limiting": {
+      "enabled": true,
+      "requests_per_minute": 1000
+    }
+  }
+}

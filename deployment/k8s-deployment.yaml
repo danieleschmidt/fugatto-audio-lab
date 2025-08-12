@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: fugatto-lab
+    version: 3.0.0
+  name: fugatto-lab-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fugatto-lab
+  template:
+    metadata:
+      labels:
+        app: fugatto-lab
+    spec:
+      containers:
+      - env:
+        - name: ENVIRONMENT
+          value: production
+        - name: VERSION
+          value: 3.0.0
+        image: terragon/fugatto-lab:latest
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        name: fugatto-lab
+        ports:
+        - containerPort: 8000
+        - containerPort: 8080
+        - containerPort: 9090
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: '8'
+            memory: 16Gi
+            nvidia.com/gpu: 1
+          requests:
+            cpu: '4'
+            memory: 8Gi

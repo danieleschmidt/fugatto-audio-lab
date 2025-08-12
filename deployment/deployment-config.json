@@ -1,0 +1,31 @@
+{
+  "environment": "production",
+  "version": "3.0.0",
+  "python_version": "3.12.3",
+  "min_cpu_cores": 4,
+  "min_memory_gb": 8,
+  "min_disk_gb": 50,
+  "gpu_required": true,
+  "gpu_memory_gb": 8,
+  "min_replicas": 2,
+  "max_replicas": 10,
+  "auto_scaling_enabled": true,
+  "load_balancer_enabled": true,
+  "security_enabled": true,
+  "encryption_at_rest": true,
+  "encryption_in_transit": true,
+  "audit_logging": true,
+  "zero_trust_architecture": true,
+  "caching_enabled": true,
+  "optimization_level": "aggressive",
+  "monitoring_enabled": true,
+  "fault_tolerance_enabled": true,
+  "ports": [
+    8000,
+    8080,
+    9090
+  ],
+  "load_balancer_port": 80,
+  "health_check_port": 8080,
+  "metrics_port": 9090
+}
