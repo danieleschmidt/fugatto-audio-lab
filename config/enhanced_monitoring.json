@@ -1,0 +1,14 @@
+{
+  "quality_metrics": {
+    "track_quality_scores": true,
+    "quality_trend_window": "24h",
+    "quality_degradation_threshold": 0.1,
+    "alert_on_quality_drop": true
+  },
+  "progressive_thresholds": {
+    "experimental": 0.5,
+    "development": 0.7,
+    "staging": 0.85,
+    "production": 0.95
+  }
+}

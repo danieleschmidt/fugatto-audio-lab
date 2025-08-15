@@ -1,0 +1,6 @@
+{
+  "simulation": "high_load",
+  "target_rps": 10000,
+  "duration_seconds": 60,
+  "timestamp": 1755230209.5663075
+}

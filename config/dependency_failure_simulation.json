@@ -1,0 +1,9 @@
+{
+  "simulation": "dependency_failure",
+  "failed_dependencies": [
+    "database",
+    "cache"
+  ],
+  "fallback_enabled": true,
+  "timestamp": 1755230209.703398
+}

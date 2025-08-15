@@ -1,0 +1,13 @@
+{
+  "quality_performance_correlation": {
+    "track_correlations": true,
+    "correlation_window": "1h",
+    "quality_weight_in_performance": 0.2,
+    "optimize_for_quality_performance_balance": true
+  },
+  "metrics": {
+    "quality_weighted_response_time": true,
+    "quality_adjusted_throughput": true,
+    "quality_performance_ratio": true
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "quality_gate_integration": true,
+  "adaptive_thresholds": true,
+  "performance_aware_scheduling": true,
+  "quality_score_weighting": 0.3
+}

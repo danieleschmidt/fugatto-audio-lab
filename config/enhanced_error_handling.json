@@ -1,0 +1,22 @@
+{
+  "quality_aware_recovery": {
+    "enable_quality_fallbacks": true,
+    "quality_threshold_for_fallback": 0.6,
+    "auto_recovery_attempts": 3,
+    "quality_degradation_response": "graceful_degradation"
+  },
+  "error_classification": {
+    "quality_critical": [
+      "security",
+      "data_corruption"
+    ],
+    "quality_warning": [
+      "performance",
+      "availability"
+    ],
+    "quality_info": [
+      "logging",
+      "monitoring"
+    ]
+  }
+}
