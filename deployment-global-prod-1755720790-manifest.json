@@ -1,0 +1,77 @@
+{
+  "apiVersion": "v1",
+  "kind": "GlobalDeployment",
+  "metadata": {
+    "name": "fugatto-audio-lab",
+    "deployment_id": "global-prod-1755720790",
+    "version": "1.0.0",
+    "created_at": 1755720790.119264
+  },
+  "spec": {
+    "target_regions": [
+      "us-east-1",
+      "eu-west-1",
+      "ap-southeast-1"
+    ],
+    "compliance_requirements": [
+      "soc2",
+      "iso27001",
+      "gdpr"
+    ],
+    "deployment_strategy": "blue_green",
+    "environment": "production",
+    "global_load_balancer": true,
+    "failover_enabled": true,
+    "disaster_recovery": true,
+    "rollback_enabled": true
+  },
+  "regional_configs": {
+    "us-east-1": {
+      "min_instances": 3,
+      "max_instances": 15,
+      "instance_types": [
+        "t3.medium",
+        "t3.large",
+        "c5.large"
+      ],
+      "compliance_zones": [
+        "soc2",
+        "iso27001",
+        "ccpa"
+      ],
+      "auto_scaling_enabled": true,
+      "monitoring_enabled": true
+    },
+    "eu-west-1": {
+      "min_instances": 3,
+      "max_instances": 12,
+      "instance_types": [
+        "t3.medium",
+        "t3.large",
+        "c5.large"
+      ],
+      "compliance_zones": [
+        "gdpr",
+        "iso27001",
+        "soc2"
+      ],
+      "auto_scaling_enabled": true,
+      "monitoring_enabled": true
+    },
+    "ap-southeast-1": {
+      "min_instances": 2,
+      "max_instances": 8,
+      "instance_types": [
+        "t3.medium",
+        "t3.large"
+      ],
+      "compliance_zones": [
+        "pdpa",
+        "iso27001",
+        "soc2"
+      ],
+      "auto_scaling_enabled": true,
+      "monitoring_enabled": true
+    }
+  }
+}

@@ -5,7 +5,7 @@
     "failed": 0,
     "skipped": 1,
     "success_rate": 95.0,
-    "total_duration": 3.717736005783081,
+    "total_duration": 4.83991003036499,
     "overall_quality_passed": true
   },
   "quality_gates": {
@@ -15,8 +15,8 @@
     "integration": true
   },
   "performance_benchmarks": {
-    "avg_processing_latency": 0.08207626342773437,
-    "throughput_tasks_per_sec": 119.81466352059326,
+    "avg_processing_latency": 0.08203887939453125,
+    "throughput_tasks_per_sec": 120.1599724975649,
     "memory_growth_mb": 0
   },
   "failed_tests": [],
@@ -24,7 +24,7 @@
     {
       "name": "core_imports",
       "status": "passed",
-      "duration": 0.024932146072387695,
+      "duration": 0.01900506019592285,
       "details": {
         "imports": [
           "quantum_planner",
@@ -35,7 +35,7 @@
     {
       "name": "quantum_task_creation",
       "status": "passed",
-      "duration": 4.100799560546875e-05,
+      "duration": 2.7179718017578125e-05,
       "details": {
         "task_id": "test_task",
         "quantum_states": 4,
@@ -45,7 +45,7 @@
     {
       "name": "audio_processor_init",
       "status": "passed",
-      "duration": 0.0002319812774658203,
+      "duration": 0.0001678466796875,
       "details": {
         "sample_rate": 44100,
         "target_loudness": -14.0,
@@ -55,18 +55,18 @@
     {
       "name": "gen1_quantum_processor",
       "status": "passed",
-      "duration": 0.08863639831542969,
+      "duration": 0.0951852798461914,
       "details": {
         "status": "success",
-        "processing_time": 83.54735374450684,
-        "quantum_coherence": 0.9709368993299597,
-        "enhancement_score": 0.814611901487966
+        "processing_time": 83.5578441619873,
+        "quantum_coherence": 1,
+        "enhancement_score": 0.7961369889234106
       }
     },
     {
       "name": "gen1_batch_processing",
       "status": "passed",
-      "duration": 0.08352041244506836,
+      "duration": 0.08362889289855957,
       "details": {
         "total_tasks": 2,
         "successful_tasks": 2,
@@ -76,7 +76,7 @@
     {
       "name": "gen2_input_validation",
       "status": "passed",
-      "duration": 0.005189418792724609,
+      "duration": 0.0173490047454834,
       "details": {
         "valid_input_passed": true,
         "invalid_input_caught": true,
@@ -86,7 +86,7 @@
     {
       "name": "gen2_circuit_breaker",
       "status": "passed",
-      "duration": 0.00038552284240722656,
+      "duration": 0.00039577484130859375,
       "details": {
         "normal_operation": true,
         "failure_detection": true,
@@ -96,7 +96,7 @@
     {
       "name": "gen2_health_monitoring",
       "status": "passed",
-      "duration": 0.0007348060607910156,
+      "duration": 0.0005888938903808594,
       "details": {
         "metric_registration": true,
         "status_transitions": true,
@@ -107,18 +107,18 @@
     {
       "name": "gen3_performance_optimizer",
       "status": "passed",
-      "duration": 1.4491462707519531,
+      "duration": 1.4685730934143066,
       "details": {
         "algorithm": "quantum_superposition",
-        "score": 0.9825547824981345,
-        "optimization_time": 1.4393467903137207,
+        "score": 0.9667445500823055,
+        "optimization_time": 1.446573257446289,
         "config_optimized": true
       }
     },
     {
       "name": "gen3_auto_scaler",
       "status": "passed",
-      "duration": 0.0002913475036621094,
+      "duration": 0.00022530555725097656,
       "details": {
         "decision_made": true,
         "action": "scale_up",
@@ -129,7 +129,7 @@
     {
       "name": "gen3_integrated_system",
       "status": "passed",
-      "duration": 0.5016467571258545,
+      "duration": 0.5014095306396484,
       "details": {
         "system_started": true,
         "system_stopped": true,
@@ -141,7 +141,7 @@
     {
       "name": "security_input_sanitization",
       "status": "passed",
-      "duration": 0.0006206035614013672,
+      "duration": 0.0006306171417236328,
       "details": {
         "tests_passed": 3,
         "total_tests": 9,
@@ -152,7 +152,7 @@
     {
       "name": "security_error_leakage",
       "status": "passed",
-      "duration": 0.19022345542907715,
+      "duration": 0.19854044914245605,
       "details": {
         "error_handled": false,
         "info_leakage_detected": [],
@@ -162,60 +162,60 @@
     {
       "name": "performance_latency",
       "status": "passed",
-      "duration": 0.41042017936706543,
+      "duration": 0.41022396087646484,
       "details": {
         "iterations": 5,
-        "avg_latency": 0.08207626342773437,
-        "max_latency": 0.08219003677368164,
-        "min_latency": 0.08197617530822754,
+        "avg_latency": 0.08203887939453125,
+        "max_latency": 0.08215022087097168,
+        "min_latency": 0.08185553550720215,
         "performance_acceptable": true
       }
     },
     {
       "name": "performance_throughput",
       "status": "passed",
-      "duration": 0.08352947235107422,
+      "duration": 0.08325719833374023,
       "details": {
         "batch_size": 10,
         "successful_tasks": 10,
-        "total_time": 0.08346223831176758,
-        "throughput": 119.81466352059326,
+        "total_time": 0.0832223892211914,
+        "throughput": 120.1599724975649,
         "throughput_acceptable": true
       }
     },
     {
       "name": "performance_memory",
       "status": "skipped",
-      "duration": 0.00023627281188964844,
+      "duration": 0.000270843505859375,
       "details": {}
     },
     {
       "name": "integration_end_to_end",
       "status": "passed",
-      "duration": 0.4850494861602783,
+      "duration": 1.5682201385498047,
       "details": {
         "gen1_processing": true,
         "gen2_robustness": true,
         "gen3_optimization": true,
         "integration_successful": false,
-        "total_processing_time": 81.90155029296875
+        "total_processing_time": 81.94684982299805
       }
     },
     {
       "name": "integration_concurrent",
       "status": "passed",
-      "duration": 0.08294153213500977,
+      "duration": 0.08297419548034668,
       "details": {
         "total_tasks": 4,
         "successful_tasks": 4,
-        "concurrent_time": 0.08291745185852051,
-        "average_time_per_task": 0.020729362964630127
+        "concurrent_time": 0.08293747901916504,
+        "average_time_per_task": 0.02073436975479126
       }
     },
     {
       "name": "edge_case_empty_inputs",
       "status": "passed",
-      "duration": 0.00013375282287597656,
+      "duration": 0.00010704994201660156,
       "details": {
         "test_cases": 5,
         "validation_results": [
@@ -264,7 +264,7 @@
     {
       "name": "edge_case_extreme_values",
       "status": "passed",
-      "duration": 0.308490514755249,
+      "duration": 0.3083665370941162,
       "details": {
         "extreme_cases": 4,
         "successful_cases": 4,
@@ -273,7 +273,8 @@
             "case": {
               "task_type": "enhance",
               "params": {
-                "level": 0.0
+                "level": 0.0,
+                "quantum_tunneling": true
               }
             },
             "status": "success",
