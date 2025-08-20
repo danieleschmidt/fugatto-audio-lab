@@ -1,38 +1,38 @@
 {
-  "overall_score": 94.66784707307815,
+  "overall_score": 94.66760790944099,
   "production_ready": false,
   "deployment_recommendation": "REQUIRES improvements before production deployment",
   "gate_results": {
     "security": {
       "passed": false,
       "score": 69.75,
-      "execution_time": 0.000213623046875,
+      "execution_time": 0.0003159046173095703,
       "metrics_count": 5,
       "recommendations_count": 3
     },
     "performance": {
       "passed": false,
-      "score": 126.02138829231262,
-      "execution_time": 2.1503005027770996,
+      "score": 126.02043163776398,
+      "execution_time": 2.0677642822265625,
       "metrics_count": 5,
       "recommendations_count": 1
     },
     "reliability": {
       "passed": true,
       "score": 95.5,
-      "execution_time": 1.5497207641601562e-05,
+      "execution_time": 1.7881393432617188e-05,
       "metrics_count": 3,
       "recommendations_count": 0
     },
     "scalability": {
       "passed": true,
       "score": 87.4,
-      "execution_time": 1.1920928955078125e-06,
+      "execution_time": 7.152557373046875e-07,
       "metrics_count": 3,
       "recommendations_count": 0
     }
   },
-  "total_execution_time": 2.151289701461792,
+  "total_execution_time": 2.0692665576934814,
   "all_recommendations": [
     "Implement stricter input validation and sanitization",
     "Add parameterized queries and input escaping",
@@ -41,5 +41,5 @@
   ],
   "gates_passed": 2,
   "total_gates": 4,
-  "timestamp": 1754849515.6554554
+  "timestamp": 1755720775.2321172
 }

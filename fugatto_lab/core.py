@@ -405,17 +405,24 @@ class FugattoModel:
                     output = self._model(input_ids)
                     
                     # Expand to chunk size with controlled randomness
-                    base_pattern = output.cpu().numpy().flatten()[0]
+                    if hasattr(output, 'cpu'):
+                        base_pattern = output.cpu().numpy().flatten()[0]
+                    elif hasattr(output, 'flatten'):
+                        flat_output = output.flatten()
+                        base_pattern = flat_output[0] if len(flat_output) > 0 else 0.5
+                    else:
+                        base_pattern = 0.5
                     chunk = np.full(chunk_samples, base_pattern)
                     
                     # Add temporal variation
                     t = np.linspace(0, 1, chunk_samples)
-                    variation = np.sin(2 * np.pi * t * np.random.uniform(0.5, 2.0)) * noise_scale
+                    import random
+                    variation = np.sin(2 * np.pi * t * random.uniform(0.5, 2.0)) * noise_scale
                     chunk += variation
                     
                     # Add some harmonics for more natural sound
                     for harmonic in [2, 3, 4]:
-                        chunk += 0.3 * np.sin(2 * np.pi * t * harmonic * np.random.uniform(0.5, 2.0)) * noise_scale
+                        chunk += 0.3 * np.sin(2 * np.pi * t * harmonic * random.uniform(0.5, 2.0)) * noise_scale
                 else:
                     # Fallback: structured noise based on prompt
                     chunk = self._generate_structured_audio(prompt, chunk_samples, temperature)

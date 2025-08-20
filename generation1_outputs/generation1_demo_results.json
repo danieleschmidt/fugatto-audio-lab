@@ -1,0 +1,108 @@
+{
+  "demo_version": "Generation 1 - MAKE IT WORK",
+  "timestamp": 1755720317.2287462,
+  "components_tested": [
+    "quantum_task_planning",
+    "audio_generation",
+    "pipeline_execution",
+    "performance_monitoring"
+  ],
+  "test_results": {
+    "basic_generation": {
+      "demo_type": "basic_generation",
+      "timestamp": 1755720317.2288826,
+      "prompts_processed": [],
+      "outputs": [],
+      "performance": {
+        "tasks_executed": 3,
+        "total_duration": 1.5314698219299316,
+        "errors_encountered": 0,
+        "audio_files_generated": 0
+      }
+    },
+    "quantum_pipeline": {
+      "demo_type": "quantum_pipeline",
+      "timestamp": 1755720318.7608852,
+      "pipeline_id": "<fugatto_lab.quantum_planner.QuantumTaskPlanner object at 0x7f5e6b7d32f0>",
+      "execution_result": {
+        "status": "completed",
+        "tasks_executed": 0,
+        "audio_files": []
+      },
+      "performance": {
+        "pipeline_duration": 0.0016765594482421875,
+        "cumulative_metrics": {
+          "tasks_executed": 5,
+          "total_duration": 1.5331463813781738,
+          "errors_encountered": 0,
+          "audio_files_generated": 0
+        }
+      }
+    },
+    "performance_benchmark": {
+      "demo_type": "performance_benchmark",
+      "timestamp": 1755720318.7627313,
+      "test_cases": [
+        {
+          "name": "Short Generation",
+          "iterations": 3,
+          "duration_per_item": 2.0,
+          "execution_times": [
+            0.0072078704833984375,
+            0.006848573684692383,
+            0.007455110549926758
+          ],
+          "average_time": 0.007170518239339192,
+          "throughput": 139.28240776613055
+        },
+        {
+          "name": "Medium Generation",
+          "iterations": 2,
+          "duration_per_item": 5.0,
+          "execution_times": [
+            0.008040666580200195,
+            0.008165121078491211
+          ],
+          "average_time": 0.008102893829345703,
+          "throughput": 123.2712417340191
+        },
+        {
+          "name": "Batch Processing",
+          "iterations": 4,
+          "duration_per_item": 3.0,
+          "execution_times": [
+            0.007371664047241211,
+            0.007594585418701172,
+            0.007376670837402344,
+            0.006932973861694336
+          ],
+          "average_time": 0.007318973541259766,
+          "throughput": 136.52555599860034
+        }
+      ],
+      "summary": {
+        "total_benchmark_time": 0.06739521026611328,
+        "total_tasks_executed": 9,
+        "overall_throughput": 133.54064724277973,
+        "cumulative_metrics": {
+          "tasks_executed": 14,
+          "total_duration": 1.5331463813781738,
+          "errors_encountered": 0,
+          "audio_files_generated": 0
+        }
+      }
+    }
+  },
+  "summary": {
+    "total_metrics": {
+      "tasks_executed": 14,
+      "total_duration": 1.5331463813781738,
+      "errors_encountered": 0,
+      "audio_files_generated": 0
+    },
+    "success_rate": 100.0,
+    "total_audio_files": 0,
+    "total_execution_time": 1.5331463813781738,
+    "output_directory": "/root/repo/generation1_outputs"
+  }
+}
