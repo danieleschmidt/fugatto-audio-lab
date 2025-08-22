@@ -1,6 +1,7 @@
 """Core Fugatto model and processing classes."""
 
 from typing import Dict, Any, Optional, Union, List
+Union = Union  # For compatibility
 # Conditional imports for testing
 try:
     import torch
@@ -412,17 +413,27 @@ class FugattoModel:
                         base_pattern = flat_output[0] if len(flat_output) > 0 else 0.5
                     else:
                         base_pattern = 0.5
-                    chunk = np.full(chunk_samples, base_pattern)
+                    
+                    if HAS_NUMPY:
+                        chunk = np.full(chunk_samples, base_pattern)
+                    else:
+                        chunk = [base_pattern] * chunk_samples
                     
                     # Add temporal variation
-                    t = np.linspace(0, 1, chunk_samples)
-                    import random
-                    variation = np.sin(2 * np.pi * t * random.uniform(0.5, 2.0)) * noise_scale
-                    chunk += variation
-                    
-                    # Add some harmonics for more natural sound
-                    for harmonic in [2, 3, 4]:
-                        chunk += 0.3 * np.sin(2 * np.pi * t * harmonic * random.uniform(0.5, 2.0)) * noise_scale
+                    if HAS_NUMPY:
+                        t = np.linspace(0, 1, chunk_samples)
+                        import random
+                        variation = np.sin(2 * np.pi * t * random.uniform(0.5, 2.0)) * noise_scale
+                        chunk = chunk + variation
+                        
+                        # Add some harmonics for more natural sound
+                        for harmonic in [2, 3, 4]:
+                            chunk = chunk + 0.3 * np.sin(2 * np.pi * t * harmonic * random.uniform(0.5, 2.0)) * noise_scale
+                    else:
+                        # Simple variation for list-based mock
+                        import random
+                        for i in range(len(chunk)):
+                            chunk[i] += random.uniform(-noise_scale, noise_scale)
                 else:
                     # Fallback: structured noise based on prompt
                     chunk = self._generate_structured_audio(prompt, chunk_samples, temperature)
@@ -430,13 +441,29 @@ class FugattoModel:
                 audio_chunks.append(chunk)
             
             # Combine chunks
-            audio = np.concatenate(audio_chunks)
+            if HAS_NUMPY:
+                audio = np.concatenate(audio_chunks)
+            else:
+                audio = []
+                for chunk in audio_chunks:
+                    if isinstance(chunk, list):
+                        audio.extend(chunk)
+                    else:
+                        audio.append(chunk)
             
             # Normalize and apply final processing
             audio = self._post_process_audio(audio, temperature)
             
-        logger.info(f"Generated {len(audio)/self.sample_rate:.2f}s of audio")
-        return audio.astype(np.float32)
+        # Calculate duration safely for both numpy and list types
+        if HAS_NUMPY and hasattr(audio, 'shape'):
+            duration = len(audio) / self.sample_rate
+        else:
+            duration = len(audio) / self.sample_rate if isinstance(audio, (list, tuple)) else 1.0
+        logger.info(f"Generated {duration:.2f}s of audio")
+        if HAS_NUMPY:
+            return audio.astype(np.float32)
+        else:
+            return audio
     
     def transform(self, audio: np.ndarray, prompt: str, 
                  strength: float = 0.7, preserve_length: bool = True) -> np.ndarray:
@@ -524,66 +551,106 @@ class FugattoModel:
         
         return audio
     
-    def _generate_structured_audio(self, prompt: str, num_samples: int, temperature: float) -> np.ndarray:
+    def _generate_structured_audio(self, prompt: str, num_samples: int, temperature: float) -> Union[np.ndarray, List[float]]:
         """Generate structured audio based on prompt content."""
-        # Create different patterns based on prompt keywords
         prompt_lower = prompt.lower()
         
-        t = np.linspace(0, num_samples / self.sample_rate, num_samples)
-        audio = np.zeros(num_samples)
-        
-        # Base frequency based on prompt
-        base_freq = 440.0  # A4
-        
-        if any(word in prompt_lower for word in ['cat', 'meow']):
-            # High-pitched, varying frequency for cat sounds
-            freq_variation = 200 * np.sin(2 * np.pi * t * 3)
-            audio = 0.3 * np.sin(2 * np.pi * (800 + freq_variation) * t)
-            # Add some noise for realism
-            audio += 0.1 * np.random.normal(0, 1, num_samples)
+        if HAS_NUMPY:
+            # NumPy implementation
+            t = np.linspace(0, num_samples / self.sample_rate, num_samples)
+            audio = np.zeros(num_samples)
+            base_freq = 440.0  # A4
             
-        elif any(word in prompt_lower for word in ['dog', 'bark']):
-            # Lower-pitched, more aggressive patterns
-            envelope = np.exp(-t * 2) * (t < 0.5)
-            audio = 0.5 * np.sin(2 * np.pi * 300 * t) * envelope
-            audio += 0.3 * np.sin(2 * np.pi * 600 * t) * envelope
+            if any(word in prompt_lower for word in ['cat', 'meow']):
+                freq_variation = 200 * np.sin(2 * np.pi * t * 3)
+                audio = 0.3 * np.sin(2 * np.pi * (800 + freq_variation) * t)
+                audio += 0.1 * np.random.normal(0, 1, num_samples)
+            elif any(word in prompt_lower for word in ['dog', 'bark']):
+                envelope = np.exp(-t * 2) * (t < 0.5)
+                audio = 0.5 * np.sin(2 * np.pi * 300 * t) * envelope
+                audio += 0.3 * np.sin(2 * np.pi * 600 * t) * envelope
+            elif any(word in prompt_lower for word in ['ocean', 'wave', 'water']):
+                audio = 0.2 * np.random.normal(0, 1, num_samples)
+                for i in range(1, len(audio)):
+                    audio[i] = 0.7 * audio[i] + 0.3 * audio[i-1]
+            elif any(word in prompt_lower for word in ['music', 'piano', 'guitar']):
+                for harmonic in [1, 2, 3, 4]:
+                    audio += (0.5 / harmonic) * np.sin(2 * np.pi * base_freq * harmonic * t)
+            else:
+                audio = 0.1 * np.random.normal(0, 1, num_samples)
+                audio += 0.2 * np.sin(2 * np.pi * base_freq * t)
             
-        elif any(word in prompt_lower for word in ['ocean', 'wave', 'water']):
-            # Noise-based for water sounds
-            audio = 0.2 * np.random.normal(0, 1, num_samples)
-            # Apply low-pass filtering effect
-            for i in range(1, len(audio)):
-                audio[i] = 0.7 * audio[i] + 0.3 * audio[i-1]
-                
-        elif any(word in prompt_lower for word in ['music', 'piano', 'guitar']):
-            # Musical tones
-            for harmonic in [1, 2, 3, 4]:
-                audio += (0.5 / harmonic) * np.sin(2 * np.pi * base_freq * harmonic * t)
-                
+            audio *= (1 + temperature * 0.5 * np.random.normal(0, 1, num_samples))
+            return audio
         else:
-            # Default: structured noise with some tonal elements
-            audio = 0.1 * np.random.normal(0, 1, num_samples)
-            audio += 0.2 * np.sin(2 * np.pi * base_freq * t)
-        
-        # Apply temperature-based variation
-        audio *= (1 + temperature * 0.5 * np.random.normal(0, 1, num_samples))
-        
-        return audio
+            # List-based fallback implementation
+            import math
+            import random
+            
+            audio = []
+            base_freq = 440.0
+            duration = num_samples / self.sample_rate
+            
+            for i in range(num_samples):
+                t = i / self.sample_rate
+                sample = 0.0
+                
+                # Simple waveform based on prompt
+                if any(word in prompt_lower for word in ['cat', 'meow']):
+                    # High frequency with variation
+                    freq = 800 + 200 * math.sin(2 * math.pi * t * 3)
+                    sample = 0.3 * math.sin(2 * math.pi * freq * t)
+                    sample += 0.1 * random.uniform(-1, 1)
+                elif any(word in prompt_lower for word in ['dog', 'bark']):
+                    # Lower frequency with envelope
+                    envelope = math.exp(-t * 2) if t < 0.5 else 0
+                    sample = 0.5 * math.sin(2 * math.pi * 300 * t) * envelope
+                    sample += 0.3 * math.sin(2 * math.pi * 600 * t) * envelope
+                elif any(word in prompt_lower for word in ['ocean', 'wave', 'water']):
+                    # Noise
+                    sample = 0.2 * random.uniform(-1, 1)
+                elif any(word in prompt_lower for word in ['music', 'piano', 'guitar']):
+                    # Musical harmonics
+                    for harmonic in [1, 2, 3, 4]:
+                        sample += (0.5 / harmonic) * math.sin(2 * math.pi * base_freq * harmonic * t)
+                else:
+                    # Default tone
+                    sample = 0.1 * random.uniform(-1, 1) + 0.2 * math.sin(2 * math.pi * base_freq * t)
+                
+                # Apply temperature variation
+                sample *= (1 + temperature * 0.5 * random.uniform(-1, 1))
+                audio.append(sample)
+            
+            return audio
     
-    def _post_process_audio(self, audio: np.ndarray, temperature: float) -> np.ndarray:
+    def _post_process_audio(self, audio: Union[np.ndarray, List[float]], temperature: float) -> Union[np.ndarray, List[float]]:
         """Apply post-processing to generated audio."""
-        # Normalize to prevent clipping
-        max_val = np.max(np.abs(audio))
-        if max_val > 0:
-            audio = audio / max_val * 0.8  # Leave some headroom
-        
-        # Apply gentle fade in/out
-        fade_samples = int(0.1 * self.sample_rate)  # 100ms fade
-        if len(audio) > 2 * fade_samples:
-            fade_in = np.linspace(0, 1, fade_samples)
-            fade_out = np.linspace(1, 0, fade_samples)
-            audio[:fade_samples] *= fade_in
-            audio[-fade_samples:] *= fade_out
+        if HAS_NUMPY and hasattr(audio, 'shape'):
+            # Numpy path
+            max_val = np.max(np.abs(audio))
+            if max_val > 0:
+                audio = audio / max_val * 0.8  # Leave some headroom
+            
+            # Apply gentle fade in/out
+            fade_samples = int(0.1 * self.sample_rate)  # 100ms fade
+            if len(audio) > 2 * fade_samples:
+                fade_in = np.linspace(0, 1, fade_samples)
+                fade_out = np.linspace(1, 0, fade_samples)
+                audio[:fade_samples] *= fade_in
+                audio[-fade_samples:] *= fade_out
+        else:
+            # List path
+            abs_values = [abs(x) for x in audio]
+            max_val = max(abs_values) if abs_values else 1.0
+            if max_val > 0:
+                audio = [x / max_val * 0.8 for x in audio]
+            
+            # Apply simple fade in/out
+            fade_samples = int(0.1 * self.sample_rate)
+            if len(audio) > 2 * fade_samples:
+                for i in range(fade_samples):
+                    audio[i] *= i / fade_samples
+                    audio[-(i+1)] *= i / fade_samples
         
         return audio
     
@@ -739,7 +806,11 @@ class AudioProcessor:
             audio = self.normalize_loudness(audio)
         
         # Ensure audio is in valid range
-        audio = np.clip(audio, -1.0, 1.0)
+        if HAS_NUMPY and hasattr(audio, 'shape'):
+            audio = np.clip(audio, -1.0, 1.0)
+        else:
+            # List clipping
+            audio = [max(-1.0, min(1.0, x)) for x in audio]
         
         try:
             if sf is not None:
@@ -750,18 +821,43 @@ class AudioProcessor:
                 # Save with soundfile
                 sf.write(str(filepath), audio, sr, format=format)
                 logger.info(f"Saved audio: {filepath} ({len(audio)/sr:.2f}s, {sr}Hz)")
-            else:
+            elif HAS_NUMPY:
                 # Fallback: save as numpy array
                 np.save(filepath.with_suffix('.npy'), audio)
                 logger.warning(f"Saved as numpy array: {filepath.with_suffix('.npy')}")
+            else:
+                # Fallback: save as JSON for compatibility
+                import json
+                audio_data = {
+                    'audio': list(audio) if isinstance(audio, list) else [float(x) for x in audio],
+                    'sample_rate': sr,
+                    'duration': len(audio) / sr,
+                    'format': 'list'
+                }
+                with open(filepath.with_suffix('.json'), 'w') as f:
+                    json.dump(audio_data, f)
+                logger.info(f"Saved audio as JSON: {filepath.with_suffix('.json')}")
                 
         except Exception as e:
             logger.error(f"Failed to save audio {filepath}: {e}")
-            # Fallback: save as numpy array
-            np.save(filepath.with_suffix('.npy'), audio)
-            logger.info(f"Saved as numpy fallback: {filepath.with_suffix('.npy')}")
+            # Final fallback: save as JSON
+            try:
+                import json
+                audio_data = {
+                    'audio': list(audio) if isinstance(audio, list) else [float(x) for x in audio],
+                    'sample_rate': sr,
+                    'duration': len(audio) / sr,
+                    'format': 'fallback',
+                    'error': str(e)
+                }
+                with open(filepath.with_suffix('.json'), 'w') as f:
+                    json.dump(audio_data, f)
+                logger.info(f"Saved audio as JSON fallback: {filepath.with_suffix('.json')}")
+            except Exception as e2:
+                logger.error(f"All save attempts failed: {e2}")
+                raise
     
-    def normalize_loudness(self, audio: np.ndarray, target_lufs: Optional[float] = None) -> np.ndarray:
+    def normalize_loudness(self, audio: Union[np.ndarray, List[float]], target_lufs: Optional[float] = None) -> Union[np.ndarray, List[float]]:
         """Normalize audio to target loudness.
         
         Args:
@@ -773,23 +869,51 @@ class AudioProcessor:
         """
         target = target_lufs or self.target_loudness
         
-        # Simple RMS-based normalization (approximates loudness)
-        rms = np.sqrt(np.mean(audio ** 2))
-        if rms > 0:
-            # Convert target LUFS to linear scale (rough approximation)
-            target_rms = 10 ** (target / 20) * 0.1
-            scale_factor = target_rms / rms
-            normalized = audio * scale_factor
-            
-            # Prevent clipping
-            max_val = np.max(np.abs(normalized))
-            if max_val > 0.95:
-                normalized = normalized * (0.95 / max_val)
+        if HAS_NUMPY and hasattr(audio, 'shape'):
+            # NumPy path
+            rms = np.sqrt(np.mean(audio ** 2))
+            if rms > 0:
+                target_rms = 10 ** (target / 20) * 0.1
+                scale_factor = target_rms / rms
+                normalized = audio * scale_factor
                 
-            logger.debug(f"Normalized audio: RMS {rms:.4f} -> {np.sqrt(np.mean(normalized**2)):.4f}")
-            return normalized
+                max_val = np.max(np.abs(normalized))
+                if max_val > 0.95:
+                    normalized = normalized * (0.95 / max_val)
+                    
+                logger.debug(f"Normalized audio: RMS {rms:.4f} -> {np.sqrt(np.mean(normalized**2)):.4f}")
+                return normalized
+            else:
+                return audio
         else:
-            return audio
+            # List path
+            import math
+            audio_list = list(audio) if not isinstance(audio, list) else audio
+            
+            # Calculate RMS
+            squared_audio = [x * x for x in audio_list]
+            rms = math.sqrt(sum(squared_audio) / len(squared_audio)) if squared_audio else 0.0
+            
+            if rms > 0:
+                # Convert target LUFS to linear scale
+                target_rms = 10 ** (target / 20) * 0.1
+                scale_factor = target_rms / rms
+                normalized = [x * scale_factor for x in audio_list]
+                
+                # Prevent clipping
+                abs_normalized = [abs(x) for x in normalized]
+                max_val = max(abs_normalized) if abs_normalized else 0.0
+                if max_val > 0.95:
+                    clip_factor = 0.95 / max_val
+                    normalized = [x * clip_factor for x in normalized]
+                
+                # Calculate new RMS for logging
+                new_squared = [x * x for x in normalized]
+                new_rms = math.sqrt(sum(new_squared) / len(new_squared)) if new_squared else 0.0
+                logger.debug(f"Normalized audio: RMS {rms:.4f} -> {new_rms:.4f}")
+                return normalized
+            else:
+                return audio_list
     
     def preprocess(self, audio: np.ndarray, normalize: bool = True, 
                    trim_silence: bool = True, apply_filter: bool = False) -> np.ndarray:
@@ -1168,7 +1292,7 @@ class AudioProcessor:
             logger.warning(f"EQ processing error: {e}")
             return audio
     
-    def get_audio_stats(self, audio: np.ndarray) -> Dict[str, Any]:
+    def get_audio_stats(self, audio: Union[np.ndarray, List[float]]) -> Dict[str, Any]:
         """Get comprehensive statistics about audio signal.
         
         Args:
@@ -1177,16 +1301,55 @@ class AudioProcessor:
         Returns:
             Dictionary with audio statistics
         """
-        stats = {
-            'duration_seconds': len(audio) / self.sample_rate,
-            'sample_rate': self.sample_rate,
-            'num_samples': len(audio),
-            'rms': float(np.sqrt(np.mean(audio ** 2))),
-            'peak': float(np.max(np.abs(audio))),
-            'mean': float(np.mean(audio)),
-            'std': float(np.std(audio)),
-            'dynamic_range_db': float(20 * np.log10(np.max(np.abs(audio)) / (np.sqrt(np.mean(audio ** 2)) + 1e-10))),
-            'zero_crossings': int(np.sum(np.diff(np.sign(audio)) != 0) / 2)
-        }
+        if HAS_NUMPY and hasattr(audio, 'shape'):
+            # NumPy path
+            stats = {
+                'duration_seconds': len(audio) / self.sample_rate,
+                'sample_rate': self.sample_rate,
+                'num_samples': len(audio),
+                'rms': float(np.sqrt(np.mean(audio ** 2))),
+                'peak': float(np.max(np.abs(audio))),
+                'mean': float(np.mean(audio)),
+                'std': float(np.std(audio)),
+                'dynamic_range_db': float(20 * np.log10(np.max(np.abs(audio)) / (np.sqrt(np.mean(audio ** 2)) + 1e-10))),
+                'zero_crossings': int(np.sum(np.diff(np.sign(audio)) != 0) / 2)
+            }
+        else:
+            # List path - use basic math
+            import math
+            audio_list = list(audio) if not isinstance(audio, list) else audio
+            
+            # Calculate basic statistics
+            abs_audio = [abs(x) for x in audio_list]
+            squared_audio = [x * x for x in audio_list]
+            
+            rms = math.sqrt(sum(squared_audio) / len(squared_audio)) if squared_audio else 0.0
+            peak = max(abs_audio) if abs_audio else 0.0
+            mean_val = sum(audio_list) / len(audio_list) if audio_list else 0.0
+            
+            # Calculate standard deviation
+            variance = sum((x - mean_val) ** 2 for x in audio_list) / len(audio_list) if audio_list else 0.0
+            std_val = math.sqrt(variance)
+            
+            # Calculate zero crossings (simplified)
+            zero_crossings = 0
+            for i in range(1, len(audio_list)):
+                if (audio_list[i] >= 0) != (audio_list[i-1] >= 0):
+                    zero_crossings += 1
+            
+            # Dynamic range
+            dynamic_range_db = 20 * math.log10(peak / (rms + 1e-10)) if rms > 0 else 0.0
+            
+            stats = {
+                'duration_seconds': len(audio_list) / self.sample_rate,
+                'sample_rate': self.sample_rate,
+                'num_samples': len(audio_list),
+                'rms': float(rms),
+                'peak': float(peak),
+                'mean': float(mean_val),
+                'std': float(std_val),
+                'dynamic_range_db': float(dynamic_range_db),
+                'zero_crossings': int(zero_crossings)
+            }
         
         return stats
