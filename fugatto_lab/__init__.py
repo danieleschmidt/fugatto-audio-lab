@@ -56,6 +56,31 @@ try:
 except ImportError:
     HAS_INTELLIGENT_SCHEDULER = False
 
+# Generation 5.0: Quantum Consciousness Components
+try:
+    from fugatto_lab.quantum_consciousness_monitor import (
+        QuantumConsciousnessMonitor,
+        ConsciousnessEvent,
+        AwarenessType,
+        ConsciousnessLevel,
+        create_quantum_consciousness_monitor
+    )
+    HAS_QUANTUM_CONSCIOUSNESS = True
+except ImportError:
+    HAS_QUANTUM_CONSCIOUSNESS = False
+
+try:
+    from fugatto_lab.temporal_consciousness_audio_processor_v5 import (
+        TemporalConsciousnessAudioProcessor,
+        AudioConsciousnessVector,
+        AudioConsciousnessState,
+        TemporalAudioSegment,
+        create_temporal_consciousness_processor
+    )
+    HAS_TEMPORAL_CONSCIOUSNESS = True
+except ImportError:
+    HAS_TEMPORAL_CONSCIOUSNESS = False
+
 # Core exports (always available)
 __all__ = [
     "QuantumTaskPlanner",
@@ -91,11 +116,32 @@ if HAS_AUDIO_CORE:
 if HAS_INTELLIGENT_SCHEDULER:
     __all__.extend(["IntelligentScheduler", "SchedulingStrategy"])
 
+# Generation 5.0: Quantum Consciousness exports
+if HAS_QUANTUM_CONSCIOUSNESS:
+    __all__.extend([
+        "QuantumConsciousnessMonitor",
+        "ConsciousnessEvent", 
+        "AwarenessType",
+        "ConsciousnessLevel",
+        "create_quantum_consciousness_monitor"
+    ])
+
+if HAS_TEMPORAL_CONSCIOUSNESS:
+    __all__.extend([
+        "TemporalConsciousnessAudioProcessor",
+        "AudioConsciousnessVector",
+        "AudioConsciousnessState", 
+        "TemporalAudioSegment",
+        "create_temporal_consciousness_processor"
+    ])
+
 # Feature flags for runtime checking
 FEATURES = {
     "quantum_planning": True,           # Always available
     "robust_validation": HAS_ROBUST_VALIDATION,
     "performance_scaling": HAS_PERFORMANCE_SCALING,
     "audio_core": HAS_AUDIO_CORE,
-    "intelligent_scheduling": HAS_INTELLIGENT_SCHEDULER
+    "intelligent_scheduling": HAS_INTELLIGENT_SCHEDULER,
+    "quantum_consciousness": HAS_QUANTUM_CONSCIOUSNESS,         # Generation 5.0
+    "temporal_consciousness": HAS_TEMPORAL_CONSCIOUSNESS        # Generation 5.0
 }
