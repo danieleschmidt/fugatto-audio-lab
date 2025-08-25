@@ -464,7 +464,7 @@ class GlobalQuantumDeploymentOrchestrator:
                 result = self._deploy_generic(task, region, optimized_resources, deployment_id)
             
             # Post-deployment verification
-            await self._verify_deployment(region, result)
+            self._verify_deployment(region, result)
             
             deployment_time = time.time() - region_start
             
