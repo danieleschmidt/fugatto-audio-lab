@@ -1,0 +1,37 @@
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fugatto-audio-lab-ingress
+  namespace: production
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - fugatto-lab.ai
+    - api.fugatto-lab.ai
+    secretName: fugatto-lab-tls
+  rules:
+  - host: fugatto-lab.ai
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: fugatto-audio-lab-service
+            port:
+              number: 80
+  - host: api.fugatto-lab.ai
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: fugatto-audio-lab-service
+            port:
+              number: 80
