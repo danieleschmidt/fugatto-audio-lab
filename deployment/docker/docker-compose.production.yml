@@ -1,0 +1,68 @@
+
+version: '3.8'
+
+services:
+  fugatto-audio-lab:
+    image: fugatto-audio-lab:1.0.0
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+      target: production
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+      - METRICS_ENABLED=true
+    volumes:
+      - ./config:/app/config:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    deploy:
+      replicas: 5
+      resources:
+        limits:
+          memory: 4Gi
+          cpus: "2.0"
+        reservations:
+          memory: 2Gi
+          cpus: "1.0"
+    networks:
+      - fugatto-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - fugatto-network
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - fugatto-audio-lab
+    restart: unless-stopped
+    networks:
+      - fugatto-network
+
+volumes:
+  redis_data:
+
+networks:
+  fugatto-network:
+    driver: bridge
