@@ -1,1 +1,0 @@
-"""Test suite for Fugatto Audio Lab."""
